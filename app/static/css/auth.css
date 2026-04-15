@@ -1,0 +1,104 @@
+/* ── Full-screen background — image added later via .auth-bg in CSS or inline ── */
+.auth-bg {
+  min-height: 100vh;
+  background: url("/static/img/auth-bg.png") center/100% no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Logo — top left corner ── */
+.auth-logo {
+  position: absolute;
+  top: 2.5rem;
+  left: 3.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.auth-logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Card wrapper — positions card on the left, vertically centered ── */
+.auth-card-wrapper {
+  position: absolute;
+  top: 55%;
+  left: 7%;
+  transform: translateY(-50%);
+  width: 40%;
+  max-width: 600px;
+}
+
+/* ── Auth card ── */
+.auth-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+  padding: 3.5rem 2.5rem 3.5rem;
+  width: 100%;
+  min-height: 520px;
+}
+
+.auth-card h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-align: center;
+  margin-bottom: 0.3rem;
+}
+
+.auth-subtitle {
+  font-size: 1.2rem;
+  color: #9ca3af;
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+/* ── Input overrides — gray background, no visible border ── */
+.auth-card .form-group input {
+  background: #f3f4f6;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+}
+
+.auth-card .form-group input:focus {
+  background: #fff;
+  border-color: #6b7280;
+}
+
+/* ── Button — dark, full width ── */
+.auth-card .btn-primary {
+  background: #2d3748;
+  color: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1.2rem;
+  width: 100%;
+  margin-top: 0.5rem;
+  letter-spacing: 0.01em;
+}
+
+.auth-card .btn-primary:hover {
+  background: #1a202c;
+}
+
+/* ── Footer link — sits below the card ── */
+.auth-footer {
+  margin-top: 1.5rem;
+  font-size: 1rem;
+  color: #ffffff95;
+  text-align: center;
+}
+
+.auth-footer a {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: underline;
+}

@@ -1,0 +1,90 @@
+/* ── Reset & base ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #f5f5f5;
+  color: #222;
+  min-height: 100vh;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Navbar ── */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1e293b;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+}
+
+.navbar-brand {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.navbar-brand:hover {
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.navbar-links a {
+  color: #cbd5e1;
+}
+
+/* Muted text for the "Hello, username" greeting */
+.navbar-links span {
+  color: #94a3b8;
+}
+
+/* ── Container — centers page content with a max width ── */
+.container {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* ── Flash messages ── */
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+/* Green for success flash messages */
+.alert-success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* Red for error flash messages */
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
