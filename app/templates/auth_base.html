@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Fridge Manager{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/base.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/forms.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/auth.css') }}"
+    />
+  </head>
+  {# auth-bg class on body — background image added here later via CSS #}
+  <body class="auth-bg">
+    {# Logo — top left, outside the card #}
+    <div class="auth-logo">
+      <span class="auth-logo-text">Fridge Manager</span>
+    </div>
+
+    {# Card floats on the left side, vertically centered #}
+    <div class="auth-card-wrapper">
+      <div class="auth-card">
+        {# Flash messages inside the card #} {% with messages =
+        get_flashed_messages(with_categories=true) %} {% if messages %} {% for
+        category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+      </div>
+
+      {# Footer link sits below the card #} {% block auth_footer %}{% endblock
+      %}
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>

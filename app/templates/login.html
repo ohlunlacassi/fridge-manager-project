@@ -1,0 +1,29 @@
+{% extends "auth_base.html" %} {% block title %}Log In — Fridge Manager{%
+endblock %} {% block content %}
+<h1>Welcome Back</h1>
+<p class="auth-subtitle">Please enter your details</p>
+
+<form method="POST" action="{{ url_for('main.login') }}">
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input
+      type="email"
+      id="email"
+      name="email"
+      value="{{ request.form.get('email', '') }}"
+      required
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required />
+  </div>
+
+  <button type="submit" class="btn btn-primary">Sign in</button>
+</form>
+{% endblock %} {% block auth_footer %}
+<p class="auth-footer">
+  Are you new? <a href="{{ url_for('main.register') }}">Create an Account</a>
+</p>
+{% endblock %}
