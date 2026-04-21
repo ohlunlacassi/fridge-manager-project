@@ -1,0 +1,151 @@
+import datetime
+import pytest
+from werkzeug.security import generate_password_hash
+from app import db
+from app.models import User, Ingredient
+
+
+# --- Helpers ---
+
+def make_user(full_name="Test User", email="test@example.com", password="password123") -> User:
+    """Create and persist a user with a properly hashed password."""
+    user = User(
+        full_name=full_name,
+        email=email,
+        password_hash=generate_password_hash(password),
+    )
+    db.session.add(user)
+    db.session.commit()
+    return user
+
+
+def login(client, email="test@example.com", password="password123"):
+    """Log in a user via the test client."""
+    return client.post("/login", data={"email": email, "password": password})
+
+
+# --- Dashboard ---
+
+def test_dashboard_requires_login(client):
+    """Unauthenticated access to / redirects to login."""
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_dashboard_loads_after_login(client, app):
+    """Dashboard returns 200 after login."""
+    with app.app_context():
+        make_user()
+    login(client)
+    response = client.get("/")
+    assert response.status_code == 200
+
+
+def test_dashboard_shows_only_own_ingredients(client, app):
+    """User only sees their own ingredients — not another user's."""
+    with app.app_context():
+        user_a = make_user(email="a@example.com")
+        user_b = make_user(full_name="User B", email="b@example.com")
+
+        # Add ingredient for user A.
+        ing_a = Ingredient(user_id=user_a.id, name="Apple", quantity=1.0, unit="pcs", category="Vegetables")
+        # Add ingredient for user B.
+        ing_b = Ingredient(user_id=user_b.id, name="Secret Stash", quantity=1.0, unit="pcs", category="Other")
+        db.session.add_all([ing_a, ing_b])
+        db.session.commit()
+
+    # Log in as user A.
+    login(client, email="a@example.com")
+    response = client.get("/")
+
+    assert b"Apple" in response.data
+    assert b"Secret Stash" not in response.data
+
+
+# --- Add Ingredient ---
+
+def test_add_ingredient_page_loads(client, app):
+    """Add ingredient page returns 200 when logged in."""
+    with app.app_context():
+        make_user()
+    login(client)
+    response = client.get("/ingredient/add")
+    assert response.status_code == 200
+
+
+def test_add_ingredient_success(client, app):
+    """Valid ingredient is saved and redirects to dashboard."""
+    with app.app_context():
+        make_user()
+    login(client)
+
+    response = client.post("/ingredient/add", data={
+        "name": "Milk",
+        "quantity": "1",
+        "unit": "l",
+        "category": "Dairy",
+        "expiry_date": (datetime.date.today() + datetime.timedelta(days=10)).isoformat(),
+    }, follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/" in response.headers["Location"]
+
+    with app.app_context():
+        assert Ingredient.query.filter_by(name="Milk").first() is not None
+
+
+def test_add_ingredient_missing_name(client, app):
+    """Ingredient without a name shows an error."""
+    with app.app_context():
+        make_user()
+    login(client)
+
+    response = client.post("/ingredient/add", data={
+        "name": "",
+        "quantity": "1",
+        "unit": "l",
+        "category": "Dairy",
+    }, follow_redirects=True)
+
+    assert b"required" in response.data
+
+
+def test_add_ingredient_invalid_quantity(client, app):
+    """Ingredient with invalid quantity shows an error."""
+    with app.app_context():
+        make_user()
+    login(client)
+
+    response = client.post("/ingredient/add", data={
+        "name": "Milk",
+        "quantity": "-1",
+        "unit": "l",
+        "category": "Dairy",
+    }, follow_redirects=True)
+
+    assert b"positive" in response.data
+
+
+def test_add_ingredient_past_expiry(client, app):
+    """Ingredient with past expiry date shows an error."""
+    with app.app_context():
+        make_user()
+    login(client)
+
+    response = client.post("/ingredient/add", data={
+        "name": "Old Milk",
+        "quantity": "1",
+        "unit": "l",
+        "category": "Dairy",
+        "expiry_date": (datetime.date.today() - datetime.timedelta(days=1)).isoformat(),
+    }, follow_redirects=True)
+
+    assert b"past" in response.data
+
+
+def test_add_ingredient_requires_login(client):
+    """Unauthenticated access to add ingredient redirects to login."""
+    response = client.get("/ingredient/add", follow_redirects=False)
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]

@@ -61,7 +61,7 @@ def test_ingredient_created(app):
 
 
 def test_expiry_status_fresh(app):
-    """Ingredient expiring in more than 3 days returns 'fresh'."""
+    """Ingredient expiring in more than 7 days returns 'fresh'."""
     user = make_user()
     ingredient = Ingredient(
         user_id=user.id,
@@ -69,13 +69,13 @@ def test_expiry_status_fresh(app):
         quantity=1.0,
         unit="kg",
         category="Dairy",
-        expiry_date=datetime.date.today() + datetime.timedelta(days=7),
+        expiry_date=datetime.date.today() + datetime.timedelta(days=8),
     )
     assert ingredient.expiry_status == "fresh"
 
 
 def test_expiry_status_warning(app):
-    """Ingredient expiring within 3 days returns 'warning'."""
+    """Ingredient expiring within 7 days returns 'warning'."""
     user = make_user()
     ingredient = Ingredient(
         user_id=user.id,
@@ -83,7 +83,7 @@ def test_expiry_status_warning(app):
         quantity=1.0,
         unit="pcs",
         category="Dairy",
-        expiry_date=datetime.date.today() + datetime.timedelta(days=2),
+        expiry_date=datetime.date.today() + datetime.timedelta(days=5),
     )
     assert ingredient.expiry_status == "warning"
 
@@ -102,13 +102,27 @@ def test_expiry_status_expired(app):
     assert ingredient.expiry_status == "expired"
 
 
-def test_expiry_status_none(app):
-    """Ingredient with no expiry date returns 'none'."""
+def test_expiry_status_expires_today(app):
+    """Ingredient expiring today returns 'expired'."""
+    user = make_user()
+    ingredient = Ingredient(
+        user_id=user.id,
+        name="Milk",
+        quantity=1.0,
+        unit="l",
+        category="Dairy",
+        expiry_date=datetime.date.today(),
+    )
+    assert ingredient.expiry_status == "expired"
+
+
+def test_expiry_status_no_date(app):
+    """Ingredient with no expiry date returns 'fresh'."""
     user = make_user()
     ingredient = Ingredient(
         user_id=user.id, name="Salt", quantity=500.0, unit="g", category="Spices"
     )
-    assert ingredient.expiry_status == "none"
+    assert ingredient.expiry_status == "fresh"
 
 
 # --- Expense ---
