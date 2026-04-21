@@ -23,6 +23,11 @@ def create_app():
     from .routes import main
     app.register_blueprint(main)
 
+    # Run migrations automatically on startup.
+    with app.app_context():
+        from flask_migrate import upgrade
+        upgrade()
+
     return app
 
 
