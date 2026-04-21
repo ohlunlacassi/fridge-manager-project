@@ -1,21 +1,96 @@
 import re
-from flask import Blueprint, redirect, render_template, request, flash, url_for
+import datetime
+from flask import Blueprint, redirect, render_template, request, flash, url_for, abort
 from flask_login import login_required, logout_user, login_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db
-from app.models import User
+from app.models import User, Ingredient
 
 main = Blueprint("main", __name__)
 
 # Simple regex for email format validation.
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
+# Predefined categories and units as specified in US5.
+CATEGORIES = ["Gemüse", "Milchprodukte", "Fleisch", "Gewürze", "Getränke", "Sonstiges"]
+UNITS = ["g", "kg", "ml", "l", "Stück"]
+
 
 @main.route("/")
 @login_required
 def index():
-    return "Fridge Manager is running!"
+    return redirect(url_for("main.ingredients"))
+
+
+@main.route("/ingredients")
+@login_required
+def ingredients():
+    """Show all ingredients belonging to the current user."""
+    # Filter by user_id to ensure data isolation (US5).
+    items = Ingredient.query.filter_by(user_id=current_user.id).all()
+    return render_template("ingredients.html", ingredients=items)
+
+
+@main.route("/ingredient/add", methods=["GET", "POST"])
+@login_required
+def ingredient_add():
+    """Show the add ingredient form (GET) and process it (POST)."""
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        quantity = request.form.get("quantity", "").strip()
+        unit = request.form.get("unit", "").strip()
+        category = request.form.get("category", "").strip()
+        expiry_date_str = request.form.get("expiry_date", "").strip()
+
+        # Validate required fields.
+        if not name:
+            flash("Name is required.", "error")
+            return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+
+        try:
+            quantity = float(quantity)
+            if quantity <= 0:
+                raise ValueError
+        except ValueError:
+            flash("Quantity must be a positive number.", "error")
+            return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+
+        if unit not in UNITS:
+            flash("Please select a valid unit.", "error")
+            return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+
+        if category not in CATEGORIES:
+            flash("Please select a valid category.", "error")
+            return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+
+        # Parse and validate expiry date — must not be in the past.
+        expiry_date = None
+        if expiry_date_str:
+            try:
+                expiry_date = datetime.date.fromisoformat(expiry_date_str)
+                if expiry_date < datetime.date.today():
+                    flash("Expiry date must not be in the past.", "error")
+                    return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+            except ValueError:
+                flash("Invalid expiry date.", "error")
+                return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+
+        ingredient = Ingredient(
+            user_id=current_user.id,
+            name=name,
+            quantity=quantity,
+            unit=unit,
+            category=category,
+            expiry_date=expiry_date,
+        )
+        db.session.add(ingredient)
+        db.session.commit()
+
+        flash(f'"{name}" has been added to your inventory.', "success")
+        return redirect(url_for("main.ingredients"))
+
+    return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
 
 
 @main.route("/register", methods=["GET", "POST"])

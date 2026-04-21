@@ -1,0 +1,40 @@
+{% extends "base.html" %} {% block title %}My Ingredients — Fridge Manager{%
+endblock %} {% block content %}
+<div class="page-header">
+  <h1>My Ingredients</h1>
+  <a href="{{ url_for('main.ingredient_add') }}" class="btn btn-primary btn-sm"
+    >+ Add Ingredient</a
+  >
+</div>
+
+{% if ingredients %}
+<div class="ingredient-grid">
+  {% for ingredient in ingredients %}
+  <div class="ingredient-card status-{{ ingredient.expiry_status }}">
+    <div class="ingredient-card-header">
+      <span class="ingredient-name">{{ ingredient.name }}</span>
+      <span class="ingredient-category">{{ ingredient.category }}</span>
+    </div>
+    <div class="ingredient-card-body">
+      <p class="ingredient-quantity">
+        {{ ingredient.quantity }} {{ ingredient.unit }}
+      </p>
+      {% if ingredient.expiry_date %}
+      <p class="ingredient-expiry">
+        Expires: {{ ingredient.expiry_date.strftime('%d.%m.%Y') }}
+      </p>
+      {% else %}
+      <p class="ingredient-expiry muted">No expiry date</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <p>Your inventory is empty.</p>
+  <a href="{{ url_for('main.ingredient_add') }}" class="btn btn-primary"
+    >Add your first ingredient</a
+  >
+</div>
+{% endif %} {% endblock %}

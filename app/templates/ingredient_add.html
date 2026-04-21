@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Add Ingredient — Fridge Manager{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-card">
+        <h1>Add Ingredient</h1>
+
+        <form method="POST" action="{{ url_for('main.ingredient_add') }}">
+
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value="{{ request.form.get('name', '') }}"
+                    required
+                >
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input
+                        type="number"
+                        id="quantity"
+                        name="quantity"
+                        step="0.01"
+                        min="0.01"
+                        value="{{ request.form.get('quantity', '') }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="unit">Unit</label>
+                    <select id="unit" name="unit" required>
+                        <option value="" disabled selected>Select unit</option>
+                        {% for unit in units %}
+                            <option value="{{ unit }}" {{ 'selected' if request.form.get('unit') == unit }}>
+                                {{ unit }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="" disabled selected>Select category</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {{ 'selected' if request.form.get('category') == cat }}>
+                            {{ cat }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="expiry_date">Expiry Date <span class="muted">(optional)</span></label>
+                {# Date must not be in the past — validated server-side and via min attribute #}
+                <input
+                    type="date"
+                    id="expiry_date"
+                    name="expiry_date"
+                    min="{{ today }}"
+                    value="{{ request.form.get('expiry_date', '') }}"
+                >
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('main.ingredients') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Add Ingredient</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

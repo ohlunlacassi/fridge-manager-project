@@ -25,7 +25,7 @@
       <div class="navbar-links">
         {# Show username + logout if logged in, otherwise show login/register
         links #} {% if current_user.is_authenticated %}
-        <span>Hello, {{ current_user.username }}</span>
+        <span>Hello, {{ current_user.full_name }}</span>
         <a href="{{ url_for('main.logout') }}">Logout</a>
         {% else %}
         <a href="{{ url_for('main.login') }}">Login</a>
