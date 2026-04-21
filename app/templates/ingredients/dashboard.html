@@ -1,0 +1,256 @@
+{% extends "base.html" %} {% block title %}My Ingredients — Fridge Manager{%
+endblock %} {% block content %}
+
+<div class="toolbar">
+  <div class="filter-tabs">
+    <button class="filter-tab active" data-category="all">All</button>
+    <button class="filter-tab" data-category="Drinks">Drinks</button>
+    <button class="filter-tab" data-category="Vegetables">Vegetable</button>
+    <button class="filter-tab" data-category="Dairy">Dairy Products</button>
+    <button class="filter-tab" data-category="Meat">Meat</button>
+    <button class="filter-tab" data-category="Spices">Spices</button>
+    <button class="filter-tab" data-category="Other">Other</button>
+  </div>
+</div>
+
+<div class="toolbar-right">
+  <button class="btn-icon">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M3 6h18M7 12h10M11 18h2" />
+    </svg>
+  </button>
+  <button class="btn btn-secondary btn-sm">Edit</button>
+  <button class="btn btn-primary btn-sm" id="open-add-modal">Add</button>
+</div>
+
+{% if ingredients %}
+<div class="ingredient-grid" id="ingredient-grid">
+  {% for ingredient in ingredients %}
+  <div
+    class="ingredient-card status-{{ ingredient.expiry_status }}"
+    data-category="{{ ingredient.category }}"
+    data-name="{{ ingredient.name | lower }}"
+  >
+    <div class="ingredient-card-top">
+      <p class="ingredient-name">{{ ingredient.name }}</p>
+      <span class="ingredient-category">{{ ingredient.category }}</span>
+    </div>
+
+    <div class="ingredient-image-wrapper">
+      {% if ingredient.image_filename %}
+      <img
+        src="{{ url_for('static', filename='uploads/' + ingredient.image_filename) }}"
+        alt="{{ ingredient.name }}"
+      />
+      {% else %}
+      <div class="ingredient-placeholder">
+        {% if ingredient.category == "Dairy" %} {# Milk bottle icon #}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M8 2h8l1 4v14a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V6l1-4z" />
+          <path d="M7 8h10" />
+          <path d="M10 2v4" />
+          <path d="M14 2v4" />
+        </svg>
+        {% elif ingredient.category == "Meat" %} {# Meat/drumstick icon #}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M15.5 3.5a5 5 0 0 1 5 5c0 3.5-4 6-4 6l-5 5-1.5-1.5 1-1-3-3-1 1L5.5 13.5l5-5s2.5-4 5-5z"
+          />
+          <path d="M3.5 20.5l3-3" />
+        </svg>
+        {% elif ingredient.category == "Vegetables" %} {# Leaf/vegetable icon #}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M11 20A7 7 0 0 1 4 13c0-5 4-9 9-11 0 0 4 2 6 6s1 9-2 12c-1 1-3 2-6 2z"
+          />
+          <path d="M4 13c4 0 7-2 9-6" />
+        </svg>
+        {% elif ingredient.category == "Drinks" %} {# Cup/drink icon #}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M8 2h8l1 18H7L8 2z" />
+          <path d="M5 8h14" />
+          <path d="M16 8l1 3a4 4 0 0 1-4 4" />
+        </svg>
+        {% elif ingredient.category == "Spices" %} {# Jar/spice icon #}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 2h6v3H9z" />
+          <path d="M8 5h8l1 14a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L8 5z" />
+          <path d="M7 10h10" />
+        </svg>
+        {% else %} {# Default box icon for Other #}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+          />
+          <path d="m3.3 7 8.7 5 8.7-5" />
+          <path d="M12 22V12" />
+        </svg>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="ingredient-card-bottom">
+      <div class="ingredient-expiry-block">
+        {% if ingredient.expiry_date %}
+        <p class="ingredient-expiry-label">expiry date</p>
+        <p class="ingredient-expiry-date">
+          {{ ingredient.expiry_date.strftime('%d/%m/%Y') }}
+        </p>
+        {% else %}
+        <p class="ingredient-expiry-label">no expiry</p>
+        <p class="ingredient-expiry-date">—</p>
+        {% endif %}
+      </div>
+      <div class="ingredient-quantity-block">
+        <p class="ingredient-quantity-label">amount</p>
+        <span class="ingredient-quantity">
+          + {{ ingredient.quantity | int if ingredient.quantity ==
+          ingredient.quantity | int else ingredient.quantity }} {{
+          ingredient.unit }} -
+        </span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state" id="ingredient-grid">
+  <p>Your inventory is empty.</p>
+  <button
+    class="btn btn-primary"
+    style="width: auto; padding: 0.6rem 2rem"
+    id="open-add-modal-empty"
+  >
+    Add your first ingredient
+  </button>
+</div>
+{% endif %} {# ── Add Ingredient Modal ── #}
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2>Add Ingredient</h2>
+    <form method="POST" action="{{ url_for('main.ingredient_add') }}">
+      <div class="form-group">
+        <label for="name">Product Name</label>
+        <input type="text" id="name" name="name" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Quantity</label>
+          <div class="quantity-control">
+            <button type="button" class="qty-btn" id="qty-minus">-</button>
+            <input
+              type="number"
+              id="quantity"
+              name="quantity"
+              step="0.01"
+              min="0.01"
+              value="1"
+              required
+            />
+            <button type="button" class="qty-btn" id="qty-plus">+</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="unit">Unit</label>
+          <select id="unit" name="unit" required>
+            <option value="" disabled selected></option>
+            {% for unit in units %}
+            <option value="{{ unit }}">{{ unit }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+          <option value="" disabled selected></option>
+          {% for cat in categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="expiry_date">Expiry Date (optional)</label>
+        <input
+          type="date"
+          id="expiry_date"
+          name="expiry_date"
+          min="{{ today }}"
+        />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="close-modal">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          style="width: auto; padding: 0.5rem 1.5rem"
+        >
+          Add
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
