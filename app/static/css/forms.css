@@ -47,14 +47,15 @@
 
 /* Primary action — full width inside auth forms */
 .btn-primary {
-  background: #2563eb;
+  background: #111;
+  border-color: #111;
   color: #fff;
-  width: 100%;
-  padding: 0.6rem;
+  width: auto;
+  padding: 0.6rem 1.25rem;
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
+  background: #333;
 }
 
 /* Destructive actions e.g. delete */
@@ -69,12 +70,13 @@
 
 /* Neutral / cancel actions */
 .btn-secondary {
-  background: #e5e7eb;
-  color: #374151;
+  background: #fff;
+  color: #111;
+  border: 1.5px solid #111;
 }
 
 .btn-secondary:hover {
-  background: #d1d5db;
+  background: #f4f4f4;
 }
 
 /* Inline field error — shown below input when validation fails */

@@ -1,84 +1,195 @@
-/* ── Page header — title + action button on the same row ── */
-.page-header {
+/* ── Toolbar ── */
+.toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-.page-header h1 {
-  font-size: 1.5rem;
+.toolbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.toolbar-right {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  width: 100%;
+  margin-top: 3rem;
+}
+
+/* ── Filter tabs — single bordered pill ── */
+.filter-tabs {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid #111;
+  border-radius: 999px;
+  padding: 0.25rem 0.5rem;
+  background: #fff;
+  width: fit-content;
+}
+
+.filter-tab {
+  background: none;
+  border: none;
+  border-radius: 999px;
+  padding: 0.35rem 1.1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: #111;
+  transition: background 0.15s;
+}
+
+.filter-tab:hover {
+  background: #f4f4f4;
+}
+
+.filter-tab.active {
   font-weight: 700;
-  color: #1a1a1a;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
 }
 
 /* ── Ingredient grid ── */
 .ingredient-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-/* ── Ingredient card ── */
+/* ── Ingredient card — sharp corners, thin border ── */
 .ingredient-card {
   background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  padding: 1rem 1.25rem;
-  border-left: 4px solid #e5e7eb;
+  border-radius: 4px;
+  border: 1.5px solid #111;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: box-shadow 0.15s ease;
+  cursor: pointer;
 }
 
-/* Expiry color coding applied via JS and server-side expiry_status property */
+.ingredient-card:hover {
+  box-shadow: 4px 4px 0 #111;
+}
+
+/* Expiry color — subtle top border accent */
 .ingredient-card.status-fresh {
-  border-left-color: #22c55e;
+  border-top: 3px solid #22c55e;
 }
 .ingredient-card.status-warning {
-  border-left-color: #f59e0b;
+  border-top: 3px solid #f59e0b;
 }
 .ingredient-card.status-expired {
-  border-left-color: #ef4444;
+  border-top: 3px solid #ef4444;
 }
 .ingredient-card.status-none {
-  border-left-color: #e5e7eb;
+  border-top: 1.5px solid #111;
 }
 
-.ingredient-card-header {
+/* ── Card top ── */
+.ingredient-card-top {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
 .ingredient-name {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #111;
+  margin: 0;
 }
 
+/* Category badge — outlined style */
 .ingredient-category {
-  font-size: 0.75rem;
-  color: #6b7280;
-  background: #f3f4f6;
-  padding: 0.15rem 0.5rem;
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #111;
+  background: #fff;
+  border: 1px solid #111;
+  padding: 0.1rem 0.5rem;
   border-radius: 999px;
+  width: fit-content;
+}
+
+/* ── Product image area ── */
+.ingredient-image-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 140px;
+  background: #e8e8e8;
+  border-radius: 2px;
+  margin: 0.25rem 0;
+}
+
+.ingredient-image-wrapper img {
+  max-height: 140px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.ingredient-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bbb;
+}
+
+.ingredient-placeholder svg {
+  width: 48px;
+  height: 48px;
+}
+
+/* ── Card bottom: expiry left, amount right ── */
+.ingredient-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e5e5;
+  margin-top: auto;
+}
+
+.ingredient-expiry-label,
+.ingredient-quantity-label {
+  font-size: 0.65rem;
+  text-transform: lowercase;
+  color: #999;
+  margin: 0;
+}
+
+.ingredient-expiry-date {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111;
+  margin: 0.1rem 0 0;
+}
+
+.ingredient-quantity-block {
+  text-align: right;
 }
 
 .ingredient-quantity {
-  font-size: 0.95rem;
-  color: #374151;
-}
-
-.ingredient-expiry {
-  font-size: 0.8rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111;
 }
 
 /* ── Empty state ── */
 .empty-state {
   text-align: center;
-  padding: 3rem 1rem;
-  color: #6b7280;
+  padding: 5rem 1rem;
+  color: #555;
 }
 
 .empty-state p {
@@ -86,7 +197,85 @@
   font-size: 1rem;
 }
 
-/* ── Form page — centered card for add/edit forms ── */
+/* ── Modal overlay ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+/* ── Modal box ── */
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+  color: #111;
+  letter-spacing: -0.02em;
+}
+
+.modal label {
+  font-size: 0.95rem;
+}
+
+.modal input,
+.modal select {
+  font-size: 0.95rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+/* ── Quantity +/- controls ── */
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.quantity-control input {
+  text-align: center;
+  width: 60px;
+}
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid #111;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn:hover {
+  background: #f4f4f4;
+}
+
+/* ── Form card ── */
 .form-page {
   display: flex;
   justify-content: center;
@@ -95,7 +284,7 @@
 .form-card {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e5e5;
   padding: 2rem;
   width: 100%;
   max-width: 560px;
@@ -105,17 +294,17 @@
   font-size: 1.4rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
-  color: #1a1a1a;
+  color: #111;
 }
 
-/* ── Two-column row for quantity + unit ── */
+/* ── Two-column row ── */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
-/* ── Form actions — cancel + submit on same row ── */
+/* ── Form actions ── */
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -123,13 +312,30 @@
   margin-top: 1.5rem;
 }
 
-/* ── Muted helper text ── */
+/* ── Muted text ── */
 .muted {
-  color: #9ca3af;
+  color: #999;
 }
 
-/* ── Small button variant ── */
+/* ── Small button ── */
 .btn-sm {
-  padding: 0.35rem 0.85rem;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
+  border-radius: 999px;
+}
+
+/* Sort icon — circle button */
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1.5px solid #111;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-icon:hover {
+  background: #f4f4f4;
 }

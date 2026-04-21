@@ -20,16 +20,12 @@ UNITS = ["g", "kg", "ml", "l", "Stück"]
 @main.route("/")
 @login_required
 def index():
-    return redirect(url_for("main.ingredients"))
-
-
-@main.route("/ingredients")
-@login_required
-def ingredients():
-    """Show all ingredients belonging to the current user."""
-    # Filter by user_id to ensure data isolation (US5).
+    """Dashboard — show all ingredients belonging to the current user."""
     items = Ingredient.query.filter_by(user_id=current_user.id).all()
-    return render_template("ingredients.html", ingredients=items)
+    return render_template("ingredients/dashboard.html", ingredients=items,
+                           categories=CATEGORIES, units=UNITS,
+                           today=datetime.date.today().isoformat())
+
 
 
 @main.route("/ingredient/add", methods=["GET", "POST"])
@@ -46,7 +42,7 @@ def ingredient_add():
         # Validate required fields.
         if not name:
             flash("Name is required.", "error")
-            return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+            return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
 
         try:
             quantity = float(quantity)
@@ -54,15 +50,15 @@ def ingredient_add():
                 raise ValueError
         except ValueError:
             flash("Quantity must be a positive number.", "error")
-            return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+            return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
 
         if unit not in UNITS:
             flash("Please select a valid unit.", "error")
-            return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+            return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
 
         if category not in CATEGORIES:
             flash("Please select a valid category.", "error")
-            return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+            return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
 
         # Parse and validate expiry date — must not be in the past.
         expiry_date = None
@@ -71,10 +67,10 @@ def ingredient_add():
                 expiry_date = datetime.date.fromisoformat(expiry_date_str)
                 if expiry_date < datetime.date.today():
                     flash("Expiry date must not be in the past.", "error")
-                    return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+                    return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
             except ValueError:
                 flash("Invalid expiry date.", "error")
-                return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+                return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
 
         ingredient = Ingredient(
             user_id=current_user.id,
@@ -88,9 +84,9 @@ def ingredient_add():
         db.session.commit()
 
         flash(f'"{name}" has been added to your inventory.', "success")
-        return redirect(url_for("main.ingredients"))
+        return redirect(url_for("main.index"))
 
-    return render_template("ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+    return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
 
 
 @main.route("/register", methods=["GET", "POST"])
@@ -104,20 +100,20 @@ def register():
 
         if not full_name:
             flash("Full name is required.", "error")
-            return render_template("register.html")
+            return render_template("auth/register.html")
 
         if not EMAIL_REGEX.match(email):
             flash("Please enter a valid email address.", "error")
-            return render_template("register.html")
+            return render_template("auth/register.html")
 
         if not password:
             flash("Password is required.", "error")
-            return render_template("register.html")
+            return render_template("auth/register.html")
 
         # Server-side password match check (JS handles the client-side version).
         if password != confirm_password:
             flash("Passwords do not match.", "error")
-            return render_template("register.html")
+            return render_template("auth/register.html")
 
         if User.query.filter_by(email=email).first():
             flash("An account with this email already exists.", "error")
@@ -135,7 +131,7 @@ def register():
         flash("Account created successfully. Please log in.", "success")
         return redirect(url_for("main.login"))
 
-    return render_template("register.html")
+    return render_template("auth/register.html")
 
 
 @main.route("/login", methods=["GET", "POST"])
@@ -154,14 +150,14 @@ def login():
         # Use check_password_hash to verify against the stored hash.
         if not user or not check_password_hash(user.password_hash, password):
             flash("Invalid email or password.", "error")
-            return render_template("login.html")
+            return render_template("auth/login.html")
 
         login_user(user)
         # Redirect to the page the user originally tried to access, or index.
         next_page = request.args.get("next")
         return redirect(next_page or url_for("main.index"))
 
-    return render_template("login.html")
+    return render_template("auth/login.html")
 
 
 @main.route("/logout")
