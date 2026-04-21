@@ -13,8 +13,8 @@ main = Blueprint("main", __name__)
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 # Predefined categories and units as specified in US5.
-CATEGORIES = ["Gemüse", "Milchprodukte", "Fleisch", "Gewürze", "Getränke", "Sonstiges"]
-UNITS = ["g", "kg", "ml", "l", "Stück"]
+CATEGORIES = ["Vegetables", "Dairy", "Meat", "Condiments", "Drinks", "Other"]
+UNITS = ["g", "kg", "ml", "l", "piece(s)"]
 
 
 @main.route("/")

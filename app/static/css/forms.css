@@ -26,12 +26,12 @@
   width: 100%;
 }
 
-/* Highlight focused field with a blue border */
+/* Highlight focused field with a black border */
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #333;
 }
 
 /* ── Buttons ── */
@@ -89,4 +89,13 @@
 
 .field-error.visible {
   height: auto;
+}
+
+/* ── Select — custom arrow with padding ── */
+.form-group select {
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
 }

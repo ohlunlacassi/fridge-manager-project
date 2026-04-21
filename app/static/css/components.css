@@ -85,13 +85,13 @@
   border-top: 3px solid #22c55e;
 }
 .ingredient-card.status-warning {
-  border-top: 3px solid #f59e0b;
+  border-top: 3px solid #f97316;
 }
 .ingredient-card.status-expired {
   border-top: 3px solid #ef4444;
 }
 .ingredient-card.status-none {
-  border-top: 1.5px solid #111;
+  border-top: 3px solid #22c55e;
 }
 
 /* ── Card top ── */
@@ -127,7 +127,7 @@
   align-items: center;
   justify-content: center;
   height: 140px;
-  background: #e8e8e8;
+  background: #fff;
   border-radius: 2px;
   margin: 0.25rem 0;
 }
@@ -142,12 +142,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #bbb;
+  color: #555;
 }
 
 .ingredient-placeholder svg {
-  width: 48px;
-  height: 48px;
+  width: 96px;
+  height: 96px;
 }
 
 /* ── Card bottom: expiry left, amount right ── */
@@ -256,6 +256,16 @@
 .quantity-control input {
   text-align: center;
   width: 60px;
+}
+
+.quantity-control input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.quantity-control input[type="number"]::-webkit-outer-spin-button,
+.quantity-control input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .qty-btn {
