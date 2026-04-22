@@ -92,7 +92,9 @@ def ingredient_add():
 @login_required
 def ingredient_edit(id: int):
     """Show the edit form (GET) and save changes (POST)."""
-    ingredient = Ingredient.query.get_or_404(id)
+    ingredient = db.session.get(Ingredient, id)
+    if ingredient is None:
+        abort(404)
 
     # Ensure the ingredient belongs to the current user.
     if ingredient.user_id != current_user.id:
@@ -155,7 +157,9 @@ def ingredient_edit(id: int):
 @main.route('/ingredient/<int:id>/quantity', methods=['POST'])
 @login_required
 def ingredient_update_quantity(id: int):
-    ingredient = Ingredient.query.get_or_404(id)
+    ingredient = db.session.get(Ingredient, id)
+    if ingredient is None:
+        abort(404)    
     if ingredient.user_id != current_user.id:
         return {'error': 'Forbidden'}, 403
 

@@ -181,7 +181,7 @@ def test_edit_ingredient_success(client, app):
     assert response.status_code == 302
 
     with app.app_context():
-        updated = Ingredient.query.get(ing_id)
+        updated = db.session.get(Ingredient, ing_id)
         assert updated.name == "Oat Milk"
         assert updated.quantity == 2.0
 
