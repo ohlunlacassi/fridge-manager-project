@@ -3,9 +3,7 @@ __pycache__/
 .env
 venv/
 uploads/
-*.db*.egg-info/
-instance/
-__pycache__/
-*.pyc
+*.egg-info/
 .DS_Store
 .pytest_cache/
+*.db

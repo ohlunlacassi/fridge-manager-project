@@ -1,5 +1,8 @@
 {% extends "auth_base.html" %} {% block title %}Log In — Fridge Manager{%
-endblock %} {% block content %}
+endblock %} {% block content %} {% if request.args.get('registered') %}
+<p class="alert alert-success">Account created successfully. Please log in.</p>
+{% endif %}
+
 <h1>Welcome Back</h1>
 <p class="auth-subtitle">Please enter your details</p>
 

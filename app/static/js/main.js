@@ -71,6 +71,21 @@ if (editModal && editForm) {
     });
   });
 
+  // ── Delete Ingredient (from Edit Modal) ──
+  const deleteBtn = document.getElementById("edit-delete-btn");
+  const deleteForm = document.getElementById("delete-form");
+
+  if (deleteBtn && deleteForm) {
+    deleteBtn.addEventListener("click", () => {
+      const confirmed = confirm(
+        "Are you sure you want to delete this ingredient?",
+      );
+      if (!confirmed) return;
+      deleteForm.action = editForm.action.replace("/edit", "/delete");
+      deleteForm.submit();
+    });
+  }
+
   document.getElementById("edit-cancel-btn").addEventListener("click", () => {
     editModal.classList.remove("open");
   });
@@ -195,7 +210,6 @@ document.querySelectorAll(".card-qty-btn").forEach((btn) => {
     const display = document.getElementById(`qty-display-${id}`);
     const currentQty = parseFloat(display.textContent.trim());
 
-    // กำหนด step ตาม unit
     const unit = display.textContent.trim().replace(/^[\d.]+\s*/, "");
     const smallUnits = ["g", "ml", "l"];
     const step = smallUnits.includes(unit.trim()) ? 5 : 1;

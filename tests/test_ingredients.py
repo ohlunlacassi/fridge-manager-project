@@ -304,3 +304,61 @@ def test_update_quantity_forbidden(client, app):
                            json={"action": "increase", "step": 1})
 
     assert response.status_code == 403
+
+# --- Delete Ingredient ---
+
+def test_delete_ingredient_success(client, app):
+    """Delete removes ingredient from database and redirects."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id)
+        ing_id = ing.id
+
+    login(client)
+    response = client.post(f'/ingredient/{ing_id}/delete', follow_redirects=False)
+
+    assert response.status_code == 302
+
+    with app.app_context():
+        assert db.session.get(Ingredient, ing_id) is None
+
+
+def test_delete_ingredient_forbidden(client, app):
+    """User cannot delete another user's ingredient — returns 403."""
+    with app.app_context():
+        owner = make_user(email='owner@example.com')
+        attacker = make_user(full_name='Attacker', email='attacker@example.com')
+        ing = make_ingredient(owner.id)
+        ing_id = ing.id
+
+    login(client, email='attacker@example.com')
+    response = client.post(f'/ingredient/{ing_id}/delete')
+
+    assert response.status_code == 403
+
+    with app.app_context():
+        assert db.session.get(Ingredient, ing_id) is not None
+
+
+def test_delete_ingredient_requires_login(client, app):
+    """Unauthenticated delete redirects to login."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id)
+        ing_id = ing.id
+
+    response = client.post(f'/ingredient/{ing_id}/delete', follow_redirects=False)
+
+    assert response.status_code == 302
+    assert '/login' in response.headers['Location']
+
+
+def test_delete_ingredient_not_found(client, app):
+    """Delete on non-existent ingredient returns 404."""
+    with app.app_context():
+        make_user()
+
+    login(client)
+    response = client.post('/ingredient/99999/delete')
+
+    assert response.status_code == 404
