@@ -149,3 +149,158 @@ def test_add_ingredient_requires_login(client):
     response = client.get("/ingredient/add", follow_redirects=False)
     assert response.status_code == 302
     assert "/login" in response.headers["Location"]
+
+    # --- Edit Ingredient ---
+
+def make_ingredient(user_id: int, name: str = "Milk", quantity: float = 1.0,
+                    unit: str = "l", category: str = "Dairy") -> Ingredient:
+    """Create and persist an ingredient for a given user."""
+    ing = Ingredient(user_id=user_id, name=name, quantity=quantity,
+                     unit=unit, category=category)
+    db.session.add(ing)
+    db.session.commit()
+    return ing
+
+
+def test_edit_ingredient_success(client, app):
+    """Valid edit saves changes and redirects to dashboard."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id)
+        ing_id = ing.id
+
+    login(client)
+    response = client.post(f"/ingredient/{ing_id}/edit", data={
+        "name": "Oat Milk",
+        "quantity": "2",
+        "unit": "l",
+        "category": "Dairy",
+        "expiry_date": "",
+    }, follow_redirects=False)
+
+    assert response.status_code == 302
+
+    with app.app_context():
+        updated = Ingredient.query.get(ing_id)
+        assert updated.name == "Oat Milk"
+        assert updated.quantity == 2.0
+
+
+def test_edit_ingredient_missing_name(client, app):
+    """Edit with empty name shows error."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id)
+        ing_id = ing.id
+
+    login(client)
+    response = client.post(f"/ingredient/{ing_id}/edit", data={
+        "name": "",
+        "quantity": "1",
+        "unit": "l",
+        "category": "Dairy",
+    }, follow_redirects=True)
+
+    assert b"required" in response.data
+
+
+def test_edit_ingredient_invalid_quantity(client, app):
+    """Edit with negative quantity shows error."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id)
+        ing_id = ing.id
+
+    login(client)
+    response = client.post(f"/ingredient/{ing_id}/edit", data={
+        "name": "Milk",
+        "quantity": "-5",
+        "unit": "l",
+        "category": "Dairy",
+    }, follow_redirects=True)
+
+    assert b"positive" in response.data
+
+
+def test_edit_ingredient_forbidden(client, app):
+    """User cannot edit another user's ingredient — returns 403."""
+    with app.app_context():
+        owner = make_user(email="owner@example.com")
+        attacker = make_user(full_name="Attacker", email="attacker@example.com")
+        ing = make_ingredient(owner.id)
+        ing_id = ing.id
+
+    login(client, email="attacker@example.com")
+    response = client.post(f"/ingredient/{ing_id}/edit", data={
+        "name": "Hacked",
+        "quantity": "1",
+        "unit": "l",
+        "category": "Dairy",
+    })
+
+    assert response.status_code == 403
+
+
+def test_edit_ingredient_requires_login(client, app):
+    """Unauthenticated edit redirects to login."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id)
+        ing_id = ing.id
+
+    response = client.post(f"/ingredient/{ing_id}/edit", data={
+        "name": "Milk",
+        "quantity": "1",
+        "unit": "l",
+        "category": "Dairy",
+    }, follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+# --- Update Quantity (fetch endpoint) ---
+
+def test_update_quantity_increase(client, app):
+    """Increase quantity via fetch endpoint."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id, quantity=5.0)
+        ing_id = ing.id
+
+    login(client)
+    response = client.post(f"/ingredient/{ing_id}/quantity",
+                           json={"action": "increase", "step": 1})
+
+    assert response.status_code == 200
+    assert response.get_json()["quantity"] == 6.0
+
+
+def test_update_quantity_decrease(client, app):
+    """Decrease quantity via fetch endpoint."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id, quantity=10.0)
+        ing_id = ing.id
+
+    login(client)
+    response = client.post(f"/ingredient/{ing_id}/quantity",
+                           json={"action": "decrease", "step": 5})
+
+    assert response.status_code == 200
+    assert response.get_json()["quantity"] == 5.0
+
+
+def test_update_quantity_forbidden(client, app):
+    """Cannot update another user's ingredient quantity."""
+    with app.app_context():
+        owner = make_user(email="owner@example.com")
+        attacker = make_user(full_name="Attacker", email="attacker@example.com")
+        ing = make_ingredient(owner.id)
+        ing_id = ing.id
+
+    login(client, email="attacker@example.com")
+    response = client.post(f"/ingredient/{ing_id}/quantity",
+                           json={"action": "increase", "step": 1})
+
+    assert response.status_code == 403
