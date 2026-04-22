@@ -21,7 +21,7 @@ UNITS = ["g", "kg", "ml", "l", "piece(s)"]
 @login_required
 def index():
     """Dashboard — show all ingredients belonging to the current user."""
-    items = Ingredient.query.filter_by(user_id=current_user.id).all()
+    items = Ingredient.query.filter_by(user_id=current_user.id).order_by(Ingredient.id.desc()).all()
     return render_template("ingredients/dashboard.html", ingredients=items,
                            categories=CATEGORIES, units=UNITS,
                            today=datetime.date.today().isoformat())

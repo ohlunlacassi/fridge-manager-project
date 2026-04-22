@@ -198,12 +198,20 @@ if (sortBtn && sortDropdown) {
         if (sortBy === "name") {
           return (a.dataset.name || "").localeCompare(b.dataset.name || "");
         }
-        if (sortBy === "expiry") {
+        if (sortBy === "expiry-asc") {
           const da = a.dataset.expiry || "9999-12-31";
           const db = b.dataset.expiry || "9999-12-31";
           return da.localeCompare(db);
         }
-        // date-added: higher id = newer
+        if (sortBy === "expiry-desc") {
+          const da = a.dataset.expiry || "0000-01-01";
+          const db = b.dataset.expiry || "0000-01-01";
+          return db.localeCompare(da);
+        }
+        if (sortBy === "date-added-asc") {
+          return parseInt(a.dataset.id) - parseInt(b.dataset.id);
+        }
+        // date-added-desc (default)
         return parseInt(b.dataset.id) - parseInt(a.dataset.id);
       });
 

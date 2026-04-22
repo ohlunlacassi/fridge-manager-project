@@ -33,10 +33,18 @@ endblock %} {% block content %}
 
   {# Sort dropdown #}
   <div class="sort-dropdown" id="sort-dropdown" style="display: none">
-    <button class="sort-option active" data-sort="date-added">
-      Date added
+    <button class="sort-option active" data-sort="date-added-desc">
+      Date added (newest first)
     </button>
-    <button class="sort-option" data-sort="expiry">Expiry date</button>
+    <button class="sort-option" data-sort="date-added-asc">
+      Date added (oldest first)
+    </button>
+    <button class="sort-option" data-sort="expiry-asc">
+      Expiry date (nearest first)
+    </button>
+    <button class="sort-option" data-sort="expiry-desc">
+      Expiry date (latest first)
+    </button>
     <button class="sort-option" data-sort="name">Name (A–Z)</button>
   </div>
 
