@@ -97,8 +97,14 @@
 /* ── Card top ── */
 .ingredient-card-top {
   display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.ingredient-card-info {
+  display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.25rem;
 }
 
 .ingredient-name {
