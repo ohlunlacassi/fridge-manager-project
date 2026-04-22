@@ -8,7 +8,7 @@ endblock %} {% block content %}
     <button class="filter-tab" data-category="Vegetables">Vegetable</button>
     <button class="filter-tab" data-category="Dairy">Dairy Products</button>
     <button class="filter-tab" data-category="Meat">Meat</button>
-    <button class="filter-tab" data-category="Spices">Spices</button>
+    <button class="filter-tab" data-category="Condiments">Condiments</button>
     <button class="filter-tab" data-category="Other">Other</button>
   </div>
 </div>
@@ -113,7 +113,7 @@ endblock %} {% block content %}
           <path d="M5 8h14" />
           <path d="M16 8l1 3a4 4 0 0 1-4 4" />
         </svg>
-        {% elif ingredient.category == "Spices" %} {# Jar/spice icon #}
+        {% elif ingredient.category == "Condiments" %} {# Jar/spice icon #}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
