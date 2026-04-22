@@ -191,6 +191,26 @@
   color: #111;
 }
 
+.ingredient-quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.card-qty-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #666;
+  padding: 0 0.2rem;
+  line-height: 1;
+}
+
+.card-qty-btn:hover {
+  color: #000;
+}
+
 /* ── Empty state ── */
 .empty-state {
   text-align: center;
@@ -354,4 +374,26 @@
 
 .btn-icon:hover {
   background: #f4f4f4;
+}
+
+.hidden {
+  display: none;
+}
+
+.btn-edit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-edit:hover {
+  background-color: #333;
 }

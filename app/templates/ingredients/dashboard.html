@@ -45,10 +45,16 @@ endblock %} {% block content %}
         <p class="ingredient-name">{{ ingredient.name }}</p>
         <span class="ingredient-category">{{ ingredient.category }}</span>
       </div>
-      <a
-        href="{{ url_for('main.ingredient_edit', id=ingredient.id) }}"
-        class="btn-edit"
-      >
+      <button
+  class="btn-edit btn-edit-ingredient"
+  data-id="{{ ingredient.id }}"
+  data-name="{{ ingredient.name }}"
+  data-quantity="{{ ingredient.quantity }}"
+  data-unit="{{ ingredient.unit }}"
+  data-category="{{ ingredient.category }}"
+  data-expiry="{{ ingredient.expiry_date.isoformat() if ingredient.expiry_date else '' }}"
+  data-url="{{ url_for('main.ingredient_edit', id=ingredient.id) }}"
+>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
@@ -184,11 +190,13 @@ endblock %} {% block content %}
       </div>
       <div class="ingredient-quantity-block">
         <p class="ingredient-quantity-label">amount</p>
-        <span class="ingredient-quantity">
-          + {{ ingredient.quantity | int if ingredient.quantity ==
-          ingredient.quantity | int else ingredient.quantity }} {{
-          ingredient.unit }} -
-        </span>
+        <div class="ingredient-quantity-controls">
+  <button class="card-qty-btn" data-id="{{ ingredient.id }}" data-action="decrease">-</button>
+  <span class="ingredient-quantity" id="qty-display-{{ ingredient.id }}">
+    {{ ingredient.quantity | int if ingredient.quantity == ingredient.quantity | int else ingredient.quantity }} {{ ingredient.unit }}
+  </span>
+  <button class="card-qty-btn" data-id="{{ ingredient.id }}" data-action="increase">+</button>
+</div>
       </div>
     </div>
   </div>
@@ -269,6 +277,55 @@ endblock %} {% block content %}
           style="width: auto; padding: 0.5rem 1.5rem"
         >
           Add
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ── Edit Ingredient Modal ── #}
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h2>Edit Ingredient</h2>
+    <form method="POST" id="edit-form">
+      <div class="form-group">
+        <label for="edit-name">Name</label>
+        <input type="text" id="edit-name" name="name" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+  <label>Quantity</label>
+  <div class="quantity-control">
+    <button type="button" class="qty-btn" id="edit-qty-minus">-</button>
+    <input type="number" id="edit-quantity" name="quantity" step="0.01" min="0.01" required />
+    <button type="button" class="qty-btn" id="edit-qty-plus">+</button>
+  </div>
+</div>
+        <div class="form-group">
+          <label for="edit-unit">Unit</label>
+          <select id="edit-unit" name="unit" required>
+            {% for unit in units %}
+            <option value="{{ unit }}">{{ unit }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="edit-category">Category</label>
+        <select id="edit-category" name="category" required>
+          {% for cat in categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="edit-expiry">Expiry Date <span class="optional">(optional)</span></label>
+        <input type="date" id="edit-expiry" name="expiry_date" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="edit-cancel-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.5rem">
+          Save Changes
         </button>
       </div>
     </form>

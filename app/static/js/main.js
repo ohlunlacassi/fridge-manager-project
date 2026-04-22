@@ -49,6 +49,67 @@ if (openBtn) openBtn.addEventListener("click", openModal);
 if (openBtnEmpty) openBtnEmpty.addEventListener("click", openModal);
 if (closeBtn) closeBtn.addEventListener("click", closeModal);
 
+// ─── Edit Ingredient Modal ───────────────────────────────────────────────────
+
+const editModal = document.getElementById("edit-modal");
+const editForm = document.getElementById("edit-form");
+
+if (editModal && editForm) {
+  document.querySelectorAll(".btn-edit-ingredient").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.getElementById("edit-name").value = btn.dataset.name;
+      document.getElementById("edit-quantity").value = parseFloat(
+        btn.dataset.quantity,
+      );
+      document.getElementById("edit-expiry").value = btn.dataset.expiry;
+
+      setSelectValue("edit-unit", btn.dataset.unit);
+      setSelectValue("edit-category", btn.dataset.category);
+
+      editForm.action = btn.dataset.url;
+      editModal.classList.add("open");
+    });
+  });
+
+  document.getElementById("edit-cancel-btn").addEventListener("click", () => {
+    editModal.classList.remove("open");
+  });
+
+  editModal.addEventListener("click", (e) => {
+    if (e.target === editModal) editModal.classList.remove("open");
+  });
+}
+
+function setSelectValue(selectId, value) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  for (const option of select.options) {
+    if (option.value === value) {
+      option.selected = true;
+      break;
+    }
+  }
+}
+
+// ── Quantity +/- buttons in Edit modal ──
+const editQtyInput = document.getElementById("edit-quantity");
+const editQtyMinus = document.getElementById("edit-qty-minus");
+const editQtyPlus = document.getElementById("edit-qty-plus");
+
+if (editQtyMinus && editQtyInput) {
+  editQtyMinus.addEventListener("click", () => {
+    const val = parseFloat(editQtyInput.value) || 1;
+    if (val > 1) editQtyInput.value = Math.round((val - 1) * 100) / 100;
+  });
+}
+
+if (editQtyPlus && editQtyInput) {
+  editQtyPlus.addEventListener("click", () => {
+    const val = parseFloat(editQtyInput.value) || 0;
+    editQtyInput.value = Math.round((val + 1) * 100) / 100;
+  });
+}
+
 // Close modal when clicking outside the modal box.
 if (modalOverlay) {
   modalOverlay.addEventListener("click", (e) => {
@@ -116,4 +177,26 @@ document.querySelectorAll(".alert").forEach((alert) => {
     alert.style.opacity = "0";
     setTimeout(() => alert.remove(), 500);
   }, 3000);
+});
+
+// ── Card quantity +/- buttons ──
+document.querySelectorAll(".card-qty-btn").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const id = btn.dataset.id;
+    const action = btn.dataset.action;
+
+    const res = await fetch(`/ingredient/${id}/quantity`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const display = document.getElementById(`qty-display-${id}`);
+      // preserve unit text (everything after the number)
+      const unit = display.textContent.trim().replace(/^[\d.]+\s*/, "");
+      display.textContent = `${Number.isInteger(data.quantity) ? data.quantity : data.quantity} ${unit}`;
+    }
+  });
 });

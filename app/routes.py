@@ -152,6 +152,22 @@ def ingredient_edit(id: int):
     return render_template("ingredients/ingredient_edit.html",
                            ingredient=ingredient, categories=CATEGORIES, units=UNITS)
 
+@main.route('/ingredient/<int:id>/quantity', methods=['POST'])
+@login_required
+def ingredient_update_quantity(id: int):
+    ingredient = Ingredient.query.get_or_404(id)
+    if ingredient.user_id != current_user.id:
+        return {'error': 'Forbidden'}, 403
+
+    action = request.json.get('action')
+    if action == 'increase':
+        ingredient.quantity += 1
+    elif action == 'decrease' and ingredient.quantity > 1:
+        ingredient.quantity -= 1
+
+    db.session.commit()
+    return {'quantity': ingredient.quantity}
+
 
 @main.route("/register", methods=["GET", "POST"])
 def register():
@@ -196,6 +212,7 @@ def register():
         return redirect(url_for("main.login"))
 
     return render_template("auth/register.html")
+
 
 
 @main.route("/login", methods=["GET", "POST"])
