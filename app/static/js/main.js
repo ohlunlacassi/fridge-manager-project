@@ -185,10 +185,18 @@ const searchInput = document.getElementById("ingredient-search");
 if (searchInput) {
   searchInput.addEventListener("input", () => {
     const query = searchInput.value.toLowerCase();
+    let visibleCount = 0;
+
     ingredientCards.forEach((card) => {
       const name = card.dataset.name || "";
-      card.style.display = name.includes(query) ? "" : "none";
+      const visible = name.includes(query);
+      card.style.display = visible ? "" : "none";
+      if (visible) visibleCount++;
     });
+
+    const emptyMsg = document.getElementById("no-results-msg");
+    if (emptyMsg)
+      emptyMsg.style.display = visibleCount === 0 ? "block" : "none";
   });
 }
 
