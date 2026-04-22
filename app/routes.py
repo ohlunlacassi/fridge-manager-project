@@ -174,6 +174,22 @@ def ingredient_update_quantity(id: int):
     db.session.commit()
     return {'quantity': ingredient.quantity}
 
+@main.route('/ingredient/<int:id>/delete', methods=['POST'])
+@login_required
+def ingredient_delete(id: int):
+    """Permanently delete an ingredient belonging to the current user."""
+    ingredient = db.session.get(Ingredient, id)
+    if ingredient is None:
+        abort(404)
+    if ingredient.user_id != current_user.id:
+        abort(403)
+
+    db.session.delete(ingredient)
+    db.session.commit()
+
+    flash(f'"{ingredient.name}" has been removed.', 'success')
+    return redirect(url_for('main.index'))
+
 @main.route("/register", methods=["GET", "POST"])
 def register():
     """Show the registration form (GET) and process it (POST)."""
