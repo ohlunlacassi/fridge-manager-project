@@ -96,17 +96,24 @@ const editQtyInput = document.getElementById("edit-quantity");
 const editQtyMinus = document.getElementById("edit-qty-minus");
 const editQtyPlus = document.getElementById("edit-qty-plus");
 
+function getEditStep() {
+  const unit = document.getElementById("edit-unit").value.trim();
+  return ["g", "ml", "l"].includes(unit) ? 5 : 1;
+}
+
 if (editQtyMinus && editQtyInput) {
   editQtyMinus.addEventListener("click", () => {
     const val = parseFloat(editQtyInput.value) || 1;
-    if (val > 1) editQtyInput.value = Math.round((val - 1) * 100) / 100;
+    const step = getEditStep();
+    if (val > step) editQtyInput.value = Math.round((val - step) * 100) / 100;
   });
 }
 
 if (editQtyPlus && editQtyInput) {
   editQtyPlus.addEventListener("click", () => {
     const val = parseFloat(editQtyInput.value) || 0;
-    editQtyInput.value = Math.round((val + 1) * 100) / 100;
+    const step = getEditStep();
+    editQtyInput.value = Math.round((val + step) * 100) / 100;
   });
 }
 
@@ -180,25 +187,26 @@ document.querySelectorAll(".alert").forEach((alert) => {
 });
 
 // ── Card quantity +/- buttons ──
-// ── Card quantity +/- buttons ──
 document.querySelectorAll(".card-qty-btn").forEach((btn) => {
   btn.addEventListener("click", async () => {
     const id = btn.dataset.id;
     const action = btn.dataset.action;
 
-    // ถ้า quantity = 1 และกด decrease → ถามก่อนลบ
+    const display = document.getElementById(`qty-display-${id}`);
+    const currentQty = parseFloat(display.textContent.trim());
+
+    // กำหนด step ตาม unit
+    const unit = display.textContent.trim().replace(/^[\d.]+\s*/, "");
+    const smallUnits = ["g", "ml", "l"];
+    const step = smallUnits.includes(unit.trim()) ? 5 : 1;
+
     if (action === "decrease") {
-      const display = document.getElementById(`qty-display-${id}`);
-      const currentQty = parseFloat(display.textContent.trim());
-      if (currentQty <= 1) {
+      if (currentQty <= step) {
         const confirmed = confirm(
           "This ingredient is out of stock. Do you want to remove it?",
         );
         if (!confirmed) return;
-
-        // ลบ ingredient ออกจาก DB
         await fetch(`/ingredient/${id}/delete`, { method: "POST" });
-        // ลบการ์ดออกจาก UI
         const card = btn.closest(".ingredient-card");
         if (card) card.remove();
         return;
@@ -208,28 +216,12 @@ document.querySelectorAll(".card-qty-btn").forEach((btn) => {
     const res = await fetch(`/ingredient/${id}/quantity`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
+      body: JSON.stringify({ action, step }),
     });
 
     if (res.ok) {
       const data = await res.json();
-      const display = document.getElementById(`qty-display-${id}`);
-      const unit = display.textContent.trim().replace(/^[\d.]+\s*/, "");
       display.textContent = `${data.quantity} ${unit}`;
     }
   });
 });
-
-const deleteBtn = document.getElementById("edit-delete-btn");
-const deleteForm = document.getElementById("delete-form");
-
-if (deleteBtn && deleteForm) {
-  deleteBtn.addEventListener("click", () => {
-    const confirmed = confirm(
-      "Are you sure you want to delete this ingredient?",
-    );
-    if (!confirmed) return;
-    deleteForm.action = editForm.action.replace("/edit", "/delete");
-    deleteForm.submit();
-  });
-}

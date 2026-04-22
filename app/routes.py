@@ -160,14 +160,15 @@ def ingredient_update_quantity(id: int):
         return {'error': 'Forbidden'}, 403
 
     action = request.json.get('action')
+    step = request.json.get('step', 1)  # default 1
+
     if action == 'increase':
-        ingredient.quantity += 1
-    elif action == 'decrease' and ingredient.quantity > 1:
-        ingredient.quantity -= 1
+        ingredient.quantity += step
+    elif action == 'decrease':
+        ingredient.quantity = max(0, ingredient.quantity - step)
 
     db.session.commit()
     return {'quantity': ingredient.quantity}
-
 
 @main.route("/register", methods=["GET", "POST"])
 def register():
