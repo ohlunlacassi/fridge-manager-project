@@ -272,6 +272,31 @@
   margin-top: 1.25rem;
 }
 
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.btn-delete-ingredient {
+  background-color: #e53e3e;
+  color: #fff;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+}
+
+.btn-delete-ingredient:hover {
+  background-color: #c53030;
+}
+
 /* ── Quantity +/- controls ── */
 .quantity-control {
   display: flex;
@@ -351,6 +376,10 @@
 /* ── Muted text ── */
 .muted {
   color: #999;
+}
+
+.btn {
+  border-radius: 999px;
 }
 
 /* ── Small button ── */

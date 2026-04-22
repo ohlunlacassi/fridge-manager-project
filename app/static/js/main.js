@@ -219,3 +219,17 @@ document.querySelectorAll(".card-qty-btn").forEach((btn) => {
     }
   });
 });
+
+const deleteBtn = document.getElementById("edit-delete-btn");
+const deleteForm = document.getElementById("delete-form");
+
+if (deleteBtn && deleteForm) {
+  deleteBtn.addEventListener("click", () => {
+    const confirmed = confirm(
+      "Are you sure you want to delete this ingredient?",
+    );
+    if (!confirmed) return;
+    deleteForm.action = editForm.action.replace("/edit", "/delete");
+    deleteForm.submit();
+  });
+}

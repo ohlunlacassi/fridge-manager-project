@@ -286,7 +286,10 @@ endblock %} {% block content %}
 {# ── Edit Ingredient Modal ── #}
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
-    <h2>Edit Ingredient</h2>
+    <div class="modal-header">
+  <h2>Edit Ingredient</h2>
+  <button type="button" class="btn-delete-ingredient" id="edit-delete-btn">Delete</button>
+</div>
     <form method="POST" id="edit-form">
       <div class="form-group">
         <label for="edit-name">Name</label>
@@ -331,5 +334,7 @@ endblock %} {% block content %}
     </form>
   </div>
 </div>
+
+<form id="delete-form" method="POST" style="display:none;"></form>
 
 {% endblock %}
