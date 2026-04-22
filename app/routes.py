@@ -88,6 +88,91 @@ def ingredient_add():
 
     return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
 
+@main.route("/ingredient/<int:id>/edit", methods=["GET", "POST"])
+@login_required
+def ingredient_edit(id: int):
+    """Show the edit form (GET) and save changes (POST)."""
+    ingredient = db.session.get(Ingredient, id)
+    if ingredient is None:
+        abort(404)
+
+    # Ensure the ingredient belongs to the current user.
+    if ingredient.user_id != current_user.id:
+        abort(403)
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        quantity = request.form.get("quantity", "").strip()
+        unit = request.form.get("unit", "").strip()
+        category = request.form.get("category", "").strip()
+        expiry_date_str = request.form.get("expiry_date", "").strip()
+
+        if not name:
+            flash("Name is required.", "error")
+            return render_template("ingredients/ingredient_edit.html",
+                                   ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+
+        try:
+            quantity = float(quantity)
+            if quantity <= 0:
+                raise ValueError
+        except ValueError:
+            flash("Quantity must be a positive number.", "error")
+            return render_template("ingredients/ingredient_edit.html",
+                                   ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+
+        if unit not in UNITS:
+            flash("Please select a valid unit.", "error")
+            return render_template("ingredients/ingredient_edit.html",
+                                   ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+
+        if category not in CATEGORIES:
+            flash("Please select a valid category.", "error")
+            return render_template("ingredients/ingredient_edit.html",
+                                   ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+
+        expiry_date = None
+        if expiry_date_str:
+            try:
+                expiry_date = datetime.date.fromisoformat(expiry_date_str)
+            except ValueError:
+                flash("Invalid expiry date.", "error")
+                return render_template("ingredients/ingredient_edit.html",
+                                       ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+
+        # Update the ingredient fields.
+        ingredient.name = name
+        ingredient.quantity = quantity
+        ingredient.unit = unit
+        ingredient.category = category
+        ingredient.expiry_date = expiry_date
+        db.session.commit()
+
+        flash(f'"{name}" has been updated.', "success")
+        return redirect(url_for("main.index"))
+
+    return render_template("ingredients/ingredient_edit.html",
+                           ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+
+@main.route('/ingredient/<int:id>/quantity', methods=['POST'])
+@login_required
+def ingredient_update_quantity(id: int):
+    ingredient = db.session.get(Ingredient, id)
+    if ingredient is None:
+        abort(404)    
+    if ingredient.user_id != current_user.id:
+        return {'error': 'Forbidden'}, 403
+
+    action = request.json.get('action')
+    step = request.json.get('step', 1)  # default 1
+
+    if action == 'increase':
+        ingredient.quantity += step
+    elif action == 'decrease':
+        ingredient.quantity = max(0, ingredient.quantity - step)
+
+    db.session.commit()
+    return {'quantity': ingredient.quantity}
 
 @main.route("/register", methods=["GET", "POST"])
 def register():
@@ -132,6 +217,7 @@ def register():
         return redirect(url_for("main.login"))
 
     return render_template("auth/register.html")
+
 
 
 @main.route("/login", methods=["GET", "POST"])

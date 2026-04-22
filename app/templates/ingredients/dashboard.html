@@ -29,7 +29,6 @@ endblock %} {% block content %}
       <path d="M3 6h18M7 12h10M11 18h2" />
     </svg>
   </button>
-  <button class="btn btn-secondary btn-sm">Edit</button>
   <button class="btn btn-primary btn-sm" id="open-add-modal">Add</button>
 </div>
 
@@ -42,8 +41,37 @@ endblock %} {% block content %}
     data-name="{{ ingredient.name | lower }}"
   >
     <div class="ingredient-card-top">
-      <p class="ingredient-name">{{ ingredient.name }}</p>
-      <span class="ingredient-category">{{ ingredient.category }}</span>
+      <div class="ingredient-card-info">
+        <p class="ingredient-name">{{ ingredient.name }}</p>
+        <span class="ingredient-category">{{ ingredient.category }}</span>
+      </div>
+      <button
+  class="btn-edit btn-edit-ingredient"
+  data-id="{{ ingredient.id }}"
+  data-name="{{ ingredient.name }}"
+  data-quantity="{{ ingredient.quantity }}"
+  data-unit="{{ ingredient.unit }}"
+  data-category="{{ ingredient.category }}"
+  data-expiry="{{ ingredient.expiry_date.isoformat() if ingredient.expiry_date else '' }}"
+  data-url="{{ url_for('main.ingredient_edit', id=ingredient.id) }}"
+>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+          />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+      </a>
     </div>
 
     <div class="ingredient-image-wrapper">
@@ -162,11 +190,13 @@ endblock %} {% block content %}
       </div>
       <div class="ingredient-quantity-block">
         <p class="ingredient-quantity-label">amount</p>
-        <span class="ingredient-quantity">
-          + {{ ingredient.quantity | int if ingredient.quantity ==
-          ingredient.quantity | int else ingredient.quantity }} {{
-          ingredient.unit }} -
-        </span>
+        <div class="ingredient-quantity-controls">
+  <button class="card-qty-btn" data-id="{{ ingredient.id }}" data-action="decrease">-</button>
+  <span class="ingredient-quantity" id="qty-display-{{ ingredient.id }}">
+    {{ ingredient.quantity | int if ingredient.quantity == ingredient.quantity | int else ingredient.quantity }} {{ ingredient.unit }}
+  </span>
+  <button class="card-qty-btn" data-id="{{ ingredient.id }}" data-action="increase">+</button>
+</div>
       </div>
     </div>
   </div>
@@ -252,5 +282,59 @@ endblock %} {% block content %}
     </form>
   </div>
 </div>
+
+{# ── Edit Ingredient Modal ── #}
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+  <h2>Edit Ingredient</h2>
+  <button type="button" class="btn-delete-ingredient" id="edit-delete-btn">Delete</button>
+</div>
+    <form method="POST" id="edit-form">
+      <div class="form-group">
+        <label for="edit-name">Name</label>
+        <input type="text" id="edit-name" name="name" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+  <label>Quantity</label>
+  <div class="quantity-control">
+    <button type="button" class="qty-btn" id="edit-qty-minus">-</button>
+    <input type="number" id="edit-quantity" name="quantity" step="0.01" min="0.01" required />
+    <button type="button" class="qty-btn" id="edit-qty-plus">+</button>
+  </div>
+</div>
+        <div class="form-group">
+          <label for="edit-unit">Unit</label>
+          <select id="edit-unit" name="unit" required>
+            {% for unit in units %}
+            <option value="{{ unit }}">{{ unit }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="edit-category">Category</label>
+        <select id="edit-category" name="category" required>
+          {% for cat in categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="edit-expiry">Expiry Date <span class="optional">(optional)</span></label>
+        <input type="date" id="edit-expiry" name="expiry_date" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="edit-cancel-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.5rem">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<form id="delete-form" method="POST" style="display:none;"></form>
 
 {% endblock %}
