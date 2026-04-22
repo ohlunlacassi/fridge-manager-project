@@ -180,10 +180,30 @@ document.querySelectorAll(".alert").forEach((alert) => {
 });
 
 // ── Card quantity +/- buttons ──
+// ── Card quantity +/- buttons ──
 document.querySelectorAll(".card-qty-btn").forEach((btn) => {
   btn.addEventListener("click", async () => {
     const id = btn.dataset.id;
     const action = btn.dataset.action;
+
+    // ถ้า quantity = 1 และกด decrease → ถามก่อนลบ
+    if (action === "decrease") {
+      const display = document.getElementById(`qty-display-${id}`);
+      const currentQty = parseFloat(display.textContent.trim());
+      if (currentQty <= 1) {
+        const confirmed = confirm(
+          "This ingredient is out of stock. Do you want to remove it?",
+        );
+        if (!confirmed) return;
+
+        // ลบ ingredient ออกจาก DB
+        await fetch(`/ingredient/${id}/delete`, { method: "POST" });
+        // ลบการ์ดออกจาก UI
+        const card = btn.closest(".ingredient-card");
+        if (card) card.remove();
+        return;
+      }
+    }
 
     const res = await fetch(`/ingredient/${id}/quantity`, {
       method: "POST",
@@ -194,9 +214,8 @@ document.querySelectorAll(".card-qty-btn").forEach((btn) => {
     if (res.ok) {
       const data = await res.json();
       const display = document.getElementById(`qty-display-${id}`);
-      // preserve unit text (everything after the number)
       const unit = display.textContent.trim().replace(/^[\d.]+\s*/, "");
-      display.textContent = `${Number.isInteger(data.quantity) ? data.quantity : data.quantity} ${unit}`;
+      display.textContent = `${data.quantity} ${unit}`;
     }
   });
 });
