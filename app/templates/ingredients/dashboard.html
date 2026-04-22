@@ -14,7 +14,7 @@ endblock %} {% block content %}
 </div>
 
 <div class="toolbar-right">
-  <button class="btn-icon">
+  <button class="btn-icon" id="sort-btn">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="16"
@@ -28,8 +28,24 @@ endblock %} {% block content %}
     >
       <path d="M3 6h18M7 12h10M11 18h2" />
     </svg>
+    Sort by
   </button>
-  <button class="btn btn-primary btn-sm" id="open-add-modal">Add</button>
+  <button class="btn btn-primary btn-sm" id="open-add-modal">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+    Add
+  </button>
 </div>
 
 {% if ingredients %}
