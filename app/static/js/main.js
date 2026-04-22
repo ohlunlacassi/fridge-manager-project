@@ -49,6 +49,13 @@ if (openBtn) openBtn.addEventListener("click", openModal);
 if (openBtnEmpty) openBtnEmpty.addEventListener("click", openModal);
 if (closeBtn) closeBtn.addEventListener("click", closeModal);
 
+// Close modal when clicking outside the modal box.
+if (modalOverlay) {
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+}
+
 // ─── Edit Ingredient Modal ───────────────────────────────────────────────────
 
 const editModal = document.getElementById("edit-modal");
@@ -71,6 +78,14 @@ if (editModal && editForm) {
     });
   });
 
+  document.getElementById("edit-cancel-btn").addEventListener("click", () => {
+    editModal.classList.remove("open");
+  });
+
+  editModal.addEventListener("click", (e) => {
+    if (e.target === editModal) editModal.classList.remove("open");
+  });
+
   // ── Delete Ingredient (from Edit Modal) ──
   const deleteBtn = document.getElementById("edit-delete-btn");
   const deleteForm = document.getElementById("delete-form");
@@ -85,14 +100,6 @@ if (editModal && editForm) {
       deleteForm.submit();
     });
   }
-
-  document.getElementById("edit-cancel-btn").addEventListener("click", () => {
-    editModal.classList.remove("open");
-  });
-
-  editModal.addEventListener("click", (e) => {
-    if (e.target === editModal) editModal.classList.remove("open");
-  });
 }
 
 function setSelectValue(selectId, value) {
@@ -132,14 +139,7 @@ if (editQtyPlus && editQtyInput) {
   });
 }
 
-// Close modal when clicking outside the modal box.
-if (modalOverlay) {
-  modalOverlay.addEventListener("click", (e) => {
-    if (e.target === modalOverlay) closeModal();
-  });
-}
-
-// ── Quantity +/- buttons in modal ──
+// ── Quantity +/- buttons in Add modal ──
 const qtyInput = document.getElementById("quantity");
 const qtyMinus = document.getElementById("qty-minus");
 const qtyPlus = document.getElementById("qty-plus");
@@ -158,13 +158,67 @@ if (qtyPlus && qtyInput) {
   });
 }
 
+// ── Sort ingredients ──
+const sortBtn = document.getElementById("sort-btn");
+const sortDropdown = document.getElementById("sort-dropdown");
+
+if (sortBtn && sortDropdown) {
+  // Toggle dropdown open/close
+  sortBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = sortDropdown.style.display === "flex";
+    sortDropdown.style.display = isOpen ? "none" : "flex";
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", () => {
+    sortDropdown.style.display = "none";
+  });
+
+  // Prevent clicks inside dropdown from closing it
+  sortDropdown.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  sortDropdown.querySelectorAll(".sort-option").forEach((option) => {
+    option.addEventListener("click", () => {
+      // Update active state
+      sortDropdown
+        .querySelectorAll(".sort-option")
+        .forEach((o) => o.classList.remove("active"));
+      option.classList.add("active");
+
+      const sortBy = option.dataset.sort;
+      const grid = document.getElementById("ingredient-grid");
+      if (!grid) return;
+
+      const cards = [...grid.querySelectorAll(".ingredient-card")];
+
+      cards.sort((a, b) => {
+        if (sortBy === "name") {
+          return (a.dataset.name || "").localeCompare(b.dataset.name || "");
+        }
+        if (sortBy === "expiry") {
+          const da = a.dataset.expiry || "9999-12-31";
+          const db = b.dataset.expiry || "9999-12-31";
+          return da.localeCompare(db);
+        }
+        // date-added: higher id = newer
+        return parseInt(b.dataset.id) - parseInt(a.dataset.id);
+      });
+
+      cards.forEach((card) => grid.appendChild(card));
+      sortDropdown.style.display = "none";
+    });
+  });
+}
+
 // ── Filter tabs — show/hide ingredient cards by category ──
 const filterTabs = document.querySelectorAll(".filter-tab");
 const ingredientCards = document.querySelectorAll(".ingredient-card");
 
 filterTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
-    // Update active tab.
     filterTabs.forEach((t) => t.classList.remove("active"));
     tab.classList.add("active");
 
@@ -219,8 +273,7 @@ document.querySelectorAll(".card-qty-btn").forEach((btn) => {
     const currentQty = parseFloat(display.textContent.trim());
 
     const unit = display.textContent.trim().replace(/^[\d.]+\s*/, "");
-    const smallUnits = ["g", "ml", "l"];
-    const step = smallUnits.includes(unit.trim()) ? 5 : 1;
+    const step = ["g", "ml", "l"].includes(unit.trim()) ? 5 : 1;
 
     if (action === "decrease") {
       if (currentQty <= step) {

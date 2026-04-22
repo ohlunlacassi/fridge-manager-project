@@ -30,6 +30,16 @@ endblock %} {% block content %}
     </svg>
     Sort by
   </button>
+
+  {# Sort dropdown #}
+  <div class="sort-dropdown" id="sort-dropdown" style="display: none">
+    <button class="sort-option active" data-sort="date-added">
+      Date added
+    </button>
+    <button class="sort-option" data-sort="expiry">Expiry date</button>
+    <button class="sort-option" data-sort="name">Name (A–Z)</button>
+  </div>
+
   <button class="btn btn-primary btn-sm" id="open-add-modal">
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -55,6 +65,8 @@ endblock %} {% block content %}
     class="ingredient-card status-{{ ingredient.expiry_status }}"
     data-category="{{ ingredient.category }}"
     data-name="{{ ingredient.name | lower }}"
+    data-id="{{ ingredient.id }}"
+    data-expiry="{{ ingredient.expiry_date.isoformat() if ingredient.expiry_date else '' }}"
   >
     <div class="ingredient-card-top">
       <div class="ingredient-card-info">
@@ -247,8 +259,7 @@ endblock %} {% block content %}
     Add your first ingredient
   </button>
 </div>
-{% endif %} {# ── No results message (shown when search/filter yields nothing)
-── #}
+{% endif %} {# ── No results message ── #}
 <div id="no-results-msg" class="empty-state" style="display: none">
   <p>No ingredients found.</p>
 </div>
