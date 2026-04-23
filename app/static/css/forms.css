@@ -6,10 +6,6 @@
   margin-bottom: 1rem;
 }
 
-.form-group.form-group--tight {
-  margin-bottom: 0 !important;
-}
-
 .form-group label {
   font-size: 1rem;
   font-weight: 500;

@@ -362,3 +362,71 @@ def test_delete_ingredient_not_found(client, app):
     response = client.post('/ingredient/99999/delete')
 
     assert response.status_code == 404
+
+    # --- Dashboard Order & Filter ---
+
+def test_dashboard_default_order_newest_first(client, app):
+    """Ingredients are returned newest first by default."""
+    with app.app_context():
+        user = make_user()
+        ing1 = make_ingredient(user.id, name="Apple")
+        ing2 = make_ingredient(user.id, name="Banana")
+        ing3 = make_ingredient(user.id, name="Carrot")
+
+    login(client)
+    response = client.get("/")
+
+    # Carrot (highest id) should appear before Apple (lowest id)
+    apple_pos  = response.data.find(b"Apple")
+    carrot_pos = response.data.find(b"Carrot")
+    assert carrot_pos < apple_pos
+
+
+def test_dashboard_shows_ingredients_of_correct_category(client, app):
+    """Dashboard renders ingredients with their correct category."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient(user.id, name="Cheddar", category="Dairy")
+        make_ingredient(user.id, name="Chicken", category="Meat")
+
+    login(client)
+    response = client.get("/")
+
+    assert b"Cheddar" in response.data
+    assert b"Dairy"   in response.data
+    assert b"Chicken" in response.data
+    assert b"Meat"    in response.data
+
+
+def test_dashboard_shows_expiry_date(client, app):
+    """Dashboard renders expiry date when set."""
+    with app.app_context():
+        user = make_user()
+        ing = Ingredient(
+            user_id=user.id,
+            name="Yogurt",
+            quantity=1.0,
+            unit="piece(s)",
+            category="Dairy",
+            expiry_date=datetime.date(2026, 12, 31),
+        )
+        db.session.add(ing)
+        db.session.commit()
+
+    login(client)
+    response = client.get("/")
+
+    assert b"Yogurt" in response.data
+    assert b"31/12/2026" in response.data
+
+
+def test_dashboard_shows_no_expiry_when_not_set(client, app):
+    """Dashboard shows 'no expiry' when expiry date is not set."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient(user.id, name="Salt", category="Other")
+
+    login(client)
+    response = client.get("/")
+
+    assert b"no expiry" in response.data

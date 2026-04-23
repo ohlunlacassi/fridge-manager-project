@@ -14,7 +14,7 @@ endblock %} {% block content %}
 </div>
 
 <div class="toolbar-right">
-  <button class="btn-icon">
+  <button class="btn-icon" id="sort-btn">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="16"
@@ -28,8 +28,42 @@ endblock %} {% block content %}
     >
       <path d="M3 6h18M7 12h10M11 18h2" />
     </svg>
+    Sort by
   </button>
-  <button class="btn btn-primary btn-sm" id="open-add-modal">Add</button>
+
+  {# Sort dropdown #}
+  <div class="sort-dropdown" id="sort-dropdown" style="display: none">
+    <button class="sort-option active" data-sort="date-added-desc">
+      Date added (newest first)
+    </button>
+    <button class="sort-option" data-sort="date-added-asc">
+      Date added (oldest first)
+    </button>
+    <button class="sort-option" data-sort="expiry-asc">
+      Expiry date (nearest first)
+    </button>
+    <button class="sort-option" data-sort="expiry-desc">
+      Expiry date (latest first)
+    </button>
+    <button class="sort-option" data-sort="name">Name (A–Z)</button>
+  </div>
+
+  <button class="btn btn-primary btn-sm" id="open-add-modal">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+    Add
+  </button>
 </div>
 
 {% if ingredients %}
@@ -39,6 +73,8 @@ endblock %} {% block content %}
     class="ingredient-card status-{{ ingredient.expiry_status }}"
     data-category="{{ ingredient.category }}"
     data-name="{{ ingredient.name | lower }}"
+    data-id="{{ ingredient.id }}"
+    data-expiry="{{ ingredient.expiry_date.isoformat() if ingredient.expiry_date else '' }}"
   >
     <div class="ingredient-card-top">
       <div class="ingredient-card-info">
@@ -46,15 +82,15 @@ endblock %} {% block content %}
         <span class="ingredient-category">{{ ingredient.category }}</span>
       </div>
       <button
-  class="btn-edit btn-edit-ingredient"
-  data-id="{{ ingredient.id }}"
-  data-name="{{ ingredient.name }}"
-  data-quantity="{{ ingredient.quantity }}"
-  data-unit="{{ ingredient.unit }}"
-  data-category="{{ ingredient.category }}"
-  data-expiry="{{ ingredient.expiry_date.isoformat() if ingredient.expiry_date else '' }}"
-  data-url="{{ url_for('main.ingredient_edit', id=ingredient.id) }}"
->
+        class="btn-edit btn-edit-ingredient"
+        data-id="{{ ingredient.id }}"
+        data-name="{{ ingredient.name }}"
+        data-quantity="{{ ingredient.quantity }}"
+        data-unit="{{ ingredient.unit }}"
+        data-category="{{ ingredient.category }}"
+        data-expiry="{{ ingredient.expiry_date.isoformat() if ingredient.expiry_date else '' }}"
+        data-url="{{ url_for('main.ingredient_edit', id=ingredient.id) }}"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
@@ -71,7 +107,7 @@ endblock %} {% block content %}
           />
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
         </svg>
-      </a>
+      </button>
     </div>
 
     <div class="ingredient-image-wrapper">
@@ -82,7 +118,7 @@ endblock %} {% block content %}
       />
       {% else %}
       <div class="ingredient-placeholder">
-        {% if ingredient.category == "Dairy" %} {# Milk bottle icon #}
+        {% if ingredient.category == "Dairy" %}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -97,7 +133,7 @@ endblock %} {% block content %}
           <path d="M10 2v4" />
           <path d="M14 2v4" />
         </svg>
-        {% elif ingredient.category == "Meat" %} {# Meat/drumstick icon #}
+        {% elif ingredient.category == "Meat" %}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -112,7 +148,7 @@ endblock %} {% block content %}
           />
           <path d="M3.5 20.5l3-3" />
         </svg>
-        {% elif ingredient.category == "Vegetables" %} {# Leaf/vegetable icon #}
+        {% elif ingredient.category == "Vegetables" %}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -127,7 +163,7 @@ endblock %} {% block content %}
           />
           <path d="M4 13c4 0 7-2 9-6" />
         </svg>
-        {% elif ingredient.category == "Drinks" %} {# Cup/drink icon #}
+        {% elif ingredient.category == "Drinks" %}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -141,7 +177,7 @@ endblock %} {% block content %}
           <path d="M5 8h14" />
           <path d="M16 8l1 3a4 4 0 0 1-4 4" />
         </svg>
-        {% elif ingredient.category == "Condiments" %} {# Jar/spice icon #}
+        {% elif ingredient.category == "Condiments" %}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -155,7 +191,7 @@ endblock %} {% block content %}
           <path d="M8 5h8l1 14a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L8 5z" />
           <path d="M7 10h10" />
         </svg>
-        {% else %} {# Default box icon for Other #}
+        {% else %}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -190,14 +226,36 @@ endblock %} {% block content %}
       </div>
       <div class="ingredient-quantity-block">
         <p class="ingredient-quantity-label">amount</p>
-       <span class="ingredient-quantity">
-  {{ ingredient.quantity | int if ingredient.quantity == ingredient.quantity | int else ingredient.quantity }} {{ ingredient.unit }}
-</span> 
+        <div class="ingredient-quantity-controls">
+          <button
+            class="card-qty-btn"
+            data-id="{{ ingredient.id }}"
+            data-action="decrease"
+          >
+            -
+          </button>
+          <span
+            class="ingredient-quantity"
+            id="qty-display-{{ ingredient.id }}"
+          >
+            {{ ingredient.quantity | int if ingredient.quantity ==
+            ingredient.quantity | int else ingredient.quantity }} {{
+            ingredient.unit }}
+          </span>
+          <button
+            class="card-qty-btn"
+            data-id="{{ ingredient.id }}"
+            data-action="increase"
+          >
+            +
+          </button>
+        </div>
       </div>
     </div>
   </div>
   {% endfor %}
 </div>
+
 {% else %}
 <div class="empty-state" id="ingredient-grid">
   <p>Your inventory is empty.</p>
@@ -209,7 +267,12 @@ endblock %} {% block content %}
     Add your first ingredient
   </button>
 </div>
-{% endif %} {# ── Add Ingredient Modal ── #}
+{% endif %} {# ── No results message ── #}
+<div id="no-results-msg" class="empty-state" style="display: none">
+  <p>No ingredients found.</p>
+</div>
+
+{# ── Add Ingredient Modal ── #}
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <h2>Add Ingredient</h2>
@@ -283,9 +346,11 @@ endblock %} {% block content %}
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
     <div class="modal-header">
-  <h2>Edit Ingredient</h2>
-  <button type="button" class="btn-delete-ingredient" id="edit-delete-btn">Delete</button>
-</div>
+      <h2>Edit Ingredient</h2>
+      <button type="button" class="btn-delete-ingredient" id="edit-delete-btn">
+        Delete
+      </button>
+    </div>
     <form method="POST" id="edit-form">
       <div class="form-group">
         <label for="edit-name">Name</label>
@@ -293,13 +358,20 @@ endblock %} {% block content %}
       </div>
       <div class="form-row">
         <div class="form-group">
-  <label>Quantity</label>
-  <div class="quantity-control">
-    <button type="button" class="qty-btn" id="edit-qty-minus">-</button>
-    <input type="number" id="edit-quantity" name="quantity" step="0.01" min="0.01" required />
-    <button type="button" class="qty-btn" id="edit-qty-plus">+</button>
-  </div>
-</div>
+          <label>Quantity</label>
+          <div class="quantity-control">
+            <button type="button" class="qty-btn" id="edit-qty-minus">-</button>
+            <input
+              type="number"
+              id="edit-quantity"
+              name="quantity"
+              step="0.01"
+              min="0.01"
+              required
+            />
+            <button type="button" class="qty-btn" id="edit-qty-plus">+</button>
+          </div>
+        </div>
         <div class="form-group">
           <label for="edit-unit">Unit</label>
           <select id="edit-unit" name="unit" required>
@@ -318,12 +390,20 @@ endblock %} {% block content %}
         </select>
       </div>
       <div class="form-group">
-        <label for="edit-expiry">Expiry Date <span class="optional">(optional)</span></label>
+        <label for="edit-expiry"
+          >Expiry Date <span class="optional">(optional)</span></label
+        >
         <input type="date" id="edit-expiry" name="expiry_date" />
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" id="edit-cancel-btn">Cancel</button>
-        <button type="submit" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.5rem">
+        <button type="button" class="btn btn-secondary" id="edit-cancel-btn">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          style="width: auto; padding: 0.5rem 1.5rem"
+        >
           Save Changes
         </button>
       </div>
@@ -331,6 +411,6 @@ endblock %} {% block content %}
   </div>
 </div>
 
-<form id="delete-form" method="POST" style="display:none;"></form>
+<form id="delete-form" method="POST" style="display: none"></form>
 
 {% endblock %}
