@@ -304,3 +304,129 @@ def test_update_quantity_forbidden(client, app):
                            json={"action": "increase", "step": 1})
 
     assert response.status_code == 403
+
+# --- Delete Ingredient ---
+
+def test_delete_ingredient_success(client, app):
+    """Delete removes ingredient from database and redirects."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id)
+        ing_id = ing.id
+
+    login(client)
+    response = client.post(f'/ingredient/{ing_id}/delete', follow_redirects=False)
+
+    assert response.status_code == 302
+
+    with app.app_context():
+        assert db.session.get(Ingredient, ing_id) is None
+
+
+def test_delete_ingredient_forbidden(client, app):
+    """User cannot delete another user's ingredient — returns 403."""
+    with app.app_context():
+        owner = make_user(email='owner@example.com')
+        attacker = make_user(full_name='Attacker', email='attacker@example.com')
+        ing = make_ingredient(owner.id)
+        ing_id = ing.id
+
+    login(client, email='attacker@example.com')
+    response = client.post(f'/ingredient/{ing_id}/delete')
+
+    assert response.status_code == 403
+
+    with app.app_context():
+        assert db.session.get(Ingredient, ing_id) is not None
+
+
+def test_delete_ingredient_requires_login(client, app):
+    """Unauthenticated delete redirects to login."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id)
+        ing_id = ing.id
+
+    response = client.post(f'/ingredient/{ing_id}/delete', follow_redirects=False)
+
+    assert response.status_code == 302
+    assert '/login' in response.headers['Location']
+
+
+def test_delete_ingredient_not_found(client, app):
+    """Delete on non-existent ingredient returns 404."""
+    with app.app_context():
+        make_user()
+
+    login(client)
+    response = client.post('/ingredient/99999/delete')
+
+    assert response.status_code == 404
+
+    # --- Dashboard Order & Filter ---
+
+def test_dashboard_default_order_newest_first(client, app):
+    """Ingredients are returned newest first by default."""
+    with app.app_context():
+        user = make_user()
+        ing1 = make_ingredient(user.id, name="Apple")
+        ing2 = make_ingredient(user.id, name="Banana")
+        ing3 = make_ingredient(user.id, name="Carrot")
+
+    login(client)
+    response = client.get("/")
+
+    # Carrot (highest id) should appear before Apple (lowest id)
+    apple_pos  = response.data.find(b"Apple")
+    carrot_pos = response.data.find(b"Carrot")
+    assert carrot_pos < apple_pos
+
+
+def test_dashboard_shows_ingredients_of_correct_category(client, app):
+    """Dashboard renders ingredients with their correct category."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient(user.id, name="Cheddar", category="Dairy")
+        make_ingredient(user.id, name="Chicken", category="Meat")
+
+    login(client)
+    response = client.get("/")
+
+    assert b"Cheddar" in response.data
+    assert b"Dairy"   in response.data
+    assert b"Chicken" in response.data
+    assert b"Meat"    in response.data
+
+
+def test_dashboard_shows_expiry_date(client, app):
+    """Dashboard renders expiry date when set."""
+    with app.app_context():
+        user = make_user()
+        ing = Ingredient(
+            user_id=user.id,
+            name="Yogurt",
+            quantity=1.0,
+            unit="piece(s)",
+            category="Dairy",
+            expiry_date=datetime.date(2026, 12, 31),
+        )
+        db.session.add(ing)
+        db.session.commit()
+
+    login(client)
+    response = client.get("/")
+
+    assert b"Yogurt" in response.data
+    assert b"31/12/2026" in response.data
+
+
+def test_dashboard_shows_no_expiry_when_not_set(client, app):
+    """Dashboard shows 'no expiry' when expiry date is not set."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient(user.id, name="Salt", category="Other")
+
+    login(client)
+    response = client.get("/")
+
+    assert b"no expiry" in response.data
