@@ -226,30 +226,11 @@ endblock %} {% block content %}
       </div>
       <div class="ingredient-quantity-block">
         <p class="ingredient-quantity-label">amount</p>
-        <div class="ingredient-quantity-controls">
-          <button
-            class="card-qty-btn"
-            data-id="{{ ingredient.id }}"
-            data-action="decrease"
-          >
-            -
-          </button>
-          <span
-            class="ingredient-quantity"
-            id="qty-display-{{ ingredient.id }}"
-          >
-            {{ ingredient.quantity | int if ingredient.quantity ==
-            ingredient.quantity | int else ingredient.quantity }} {{
-            ingredient.unit }}
-          </span>
-          <button
-            class="card-qty-btn"
-            data-id="{{ ingredient.id }}"
-            data-action="increase"
-          >
-            +
-          </button>
-        </div>
+        <span class="ingredient-quantity">
+          {{ ingredient.quantity | int if ingredient.quantity ==
+          ingredient.quantity | int else ingredient.quantity }} {{
+          ingredient.unit }}
+        </span>
       </div>
     </div>
   </div>
