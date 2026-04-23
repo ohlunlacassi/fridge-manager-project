@@ -63,12 +63,13 @@
                 <label for="expiry_date">Expiry Date <span class="muted">(optional)</span></label>
                 {# Date must not be in the past — validated server-side and via min attribute #}
                 <input
-                    type="date"
-                    id="expiry_date"
-                    name="expiry_date"
-                    min="{{ today }}"
-                    value="{{ request.form.get('expiry_date', '') }}"
-                >
+    type="date"
+    id="expiry_date"
+    name="expiry_date"
+    min="{{ today }}"
+    max="{{ max_date }}"
+    value="{{ request.form.get('expiry_date', '') }}"
+>
             </div>
 
             <div class="form-actions">
