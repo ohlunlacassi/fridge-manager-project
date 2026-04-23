@@ -8,12 +8,6 @@
   gap: 0.75rem;
 }
 
-.toolbar {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
 .toolbar-right {
   display: flex;
   justify-content: flex-end;
@@ -377,10 +371,6 @@
 /* ── Muted text ── */
 .muted {
   color: #999;
-}
-
-.btn {
-  border-radius: 999px;
 }
 
 /* ── Small button ── */
