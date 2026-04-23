@@ -139,7 +139,24 @@ if (editQtyPlus && editQtyInput) {
   });
 }
 
-// ── Quantity +/- buttons in Add modal ──
+// ── Click on card to open edit modal ──
+document.querySelectorAll(".ingredient-card").forEach((card) => {
+  card.addEventListener("click", (e) => {
+    if (e.target.closest(".btn-edit-ingredient")) return;
+
+    const btn = card.querySelector(".btn-edit-ingredient");
+    if (btn) btn.click();
+  });
+});
+
+// Close modal when clicking outside the modal box.
+if (modalOverlay) {
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+}
+
+// ── Quantity +/- buttons in modal ──
 const qtyInput = document.getElementById("quantity");
 const qtyMinus = document.getElementById("qty-minus");
 const qtyPlus = document.getElementById("qty-plus");

@@ -17,6 +17,13 @@ CATEGORIES = ["Vegetables", "Dairy", "Meat", "Condiments", "Drinks", "Other"]
 UNITS = ["g", "kg", "ml", "l", "piece(s)"]
 
 
+def get_dates() -> dict:
+    """Return today and max_date (10 years from now) as ISO strings."""
+    today = datetime.date.today()
+    max_date = today.replace(year=today.year + 10)
+    return {"today": today.isoformat(), "max_date": max_date.isoformat()}
+
+
 @main.route("/")
 @login_required
 def index():
@@ -24,8 +31,7 @@ def index():
     items = Ingredient.query.filter_by(user_id=current_user.id).order_by(Ingredient.id.desc()).all()
     return render_template("ingredients/dashboard.html", ingredients=items,
                            categories=CATEGORIES, units=UNITS,
-                           today=datetime.date.today().isoformat())
-
+                           **get_dates())
 
 
 @main.route("/ingredient/add", methods=["GET", "POST"])
@@ -42,7 +48,8 @@ def ingredient_add():
         # Validate required fields.
         if not name:
             flash("Name is required.", "error")
-            return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+            return render_template("ingredients/ingredient_add.html",
+                                   categories=CATEGORIES, units=UNITS, **get_dates())
 
         try:
             quantity = float(quantity)
@@ -50,15 +57,18 @@ def ingredient_add():
                 raise ValueError
         except ValueError:
             flash("Quantity must be a positive number.", "error")
-            return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+            return render_template("ingredients/ingredient_add.html",
+                                   categories=CATEGORIES, units=UNITS, **get_dates())
 
         if unit not in UNITS:
             flash("Please select a valid unit.", "error")
-            return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+            return render_template("ingredients/ingredient_add.html",
+                                   categories=CATEGORIES, units=UNITS, **get_dates())
 
         if category not in CATEGORIES:
             flash("Please select a valid category.", "error")
-            return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+            return render_template("ingredients/ingredient_add.html",
+                                   categories=CATEGORIES, units=UNITS, **get_dates())
 
         # Parse and validate expiry date — must not be in the past.
         expiry_date = None
@@ -67,10 +77,12 @@ def ingredient_add():
                 expiry_date = datetime.date.fromisoformat(expiry_date_str)
                 if expiry_date < datetime.date.today():
                     flash("Expiry date must not be in the past.", "error")
-                    return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+                    return render_template("ingredients/ingredient_add.html",
+                                           categories=CATEGORIES, units=UNITS, **get_dates())
             except ValueError:
                 flash("Invalid expiry date.", "error")
-                return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+                return render_template("ingredients/ingredient_add.html",
+                                       categories=CATEGORIES, units=UNITS, **get_dates())
 
         ingredient = Ingredient(
             user_id=current_user.id,
@@ -86,7 +98,9 @@ def ingredient_add():
         flash(f'"{name}" has been added to your inventory.', "success")
         return redirect(url_for("main.index"))
 
-    return render_template("ingredients/ingredient_add.html", categories=CATEGORIES, units=UNITS, today=datetime.date.today().isoformat())
+    return render_template("ingredients/ingredient_add.html",
+                           categories=CATEGORIES, units=UNITS, **get_dates())
+
 
 @main.route("/ingredient/<int:id>/edit", methods=["GET", "POST"])
 @login_required
@@ -110,7 +124,8 @@ def ingredient_edit(id: int):
         if not name:
             flash("Name is required.", "error")
             return render_template("ingredients/ingredient_edit.html",
-                                   ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+                                   ingredient=ingredient, categories=CATEGORIES,
+                                   units=UNITS, **get_dates())
 
         try:
             quantity = float(quantity)
@@ -119,17 +134,20 @@ def ingredient_edit(id: int):
         except ValueError:
             flash("Quantity must be a positive number.", "error")
             return render_template("ingredients/ingredient_edit.html",
-                                   ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+                                   ingredient=ingredient, categories=CATEGORIES,
+                                   units=UNITS, **get_dates())
 
         if unit not in UNITS:
             flash("Please select a valid unit.", "error")
             return render_template("ingredients/ingredient_edit.html",
-                                   ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+                                   ingredient=ingredient, categories=CATEGORIES,
+                                   units=UNITS, **get_dates())
 
         if category not in CATEGORIES:
             flash("Please select a valid category.", "error")
             return render_template("ingredients/ingredient_edit.html",
-                                   ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+                                   ingredient=ingredient, categories=CATEGORIES,
+                                   units=UNITS, **get_dates())
 
         expiry_date = None
         if expiry_date_str:
@@ -138,7 +156,8 @@ def ingredient_edit(id: int):
             except ValueError:
                 flash("Invalid expiry date.", "error")
                 return render_template("ingredients/ingredient_edit.html",
-                                       ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+                                       ingredient=ingredient, categories=CATEGORIES,
+                                       units=UNITS, **get_dates())
 
         # Update the ingredient fields.
         ingredient.name = name
@@ -152,14 +171,16 @@ def ingredient_edit(id: int):
         return redirect(url_for("main.index"))
 
     return render_template("ingredients/ingredient_edit.html",
-                           ingredient=ingredient, categories=CATEGORIES, units=UNITS)
+                           ingredient=ingredient, categories=CATEGORIES,
+                           units=UNITS, **get_dates())
+
 
 @main.route('/ingredient/<int:id>/quantity', methods=['POST'])
 @login_required
 def ingredient_update_quantity(id: int):
     ingredient = db.session.get(Ingredient, id)
     if ingredient is None:
-        abort(404)    
+        abort(404)
     if ingredient.user_id != current_user.id:
         return {'error': 'Forbidden'}, 403
 
@@ -173,6 +194,7 @@ def ingredient_update_quantity(id: int):
 
     db.session.commit()
     return {'quantity': ingredient.quantity}
+
 
 @main.route('/ingredient/<int:id>/delete', methods=['POST'])
 @login_required
@@ -189,6 +211,7 @@ def ingredient_delete(id: int):
 
     flash(f'"{ingredient.name}" has been removed.', 'success')
     return redirect(url_for('main.index'))
+
 
 @main.route("/register", methods=["GET", "POST"])
 def register():
@@ -229,10 +252,9 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        return redirect(url_for("main.login"))
+        return redirect(url_for("main.login", registered="1"))
 
     return render_template("auth/register.html")
-
 
 
 @main.route("/login", methods=["GET", "POST"])

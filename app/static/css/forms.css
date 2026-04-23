@@ -54,16 +54,6 @@
   background: #333;
 }
 
-/* Destructive actions e.g. delete */
-.btn-danger {
-  background: #dc2626;
-  color: #fff;
-}
-
-.btn-danger:hover {
-  background: #b91c1c;
-}
-
 /* Neutral / cancel actions */
 .btn-secondary {
   background: #fff;
