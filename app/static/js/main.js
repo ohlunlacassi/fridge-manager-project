@@ -195,8 +195,11 @@ if (sortBtn && sortDropdown) {
       const cards = [...grid.querySelectorAll(".ingredient-card")];
 
       cards.sort((a, b) => {
-        if (sortBy === "name") {
+        if (sortBy === "name-asc") {
           return (a.dataset.name || "").localeCompare(b.dataset.name || "");
+        }
+        if (sortBy === "name-dsc") {
+          return (b.dataset.name || "").localeCompare(a.dataset.name || "");
         }
         if (sortBy === "expiry-asc") {
           const da = a.dataset.expiry || "9999-12-31";
