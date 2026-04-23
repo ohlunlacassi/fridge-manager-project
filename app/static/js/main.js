@@ -117,6 +117,16 @@ if (editQtyPlus && editQtyInput) {
   });
 }
 
+// ── Click on card to open edit modal ──
+document.querySelectorAll(".ingredient-card").forEach((card) => {
+  card.addEventListener("click", (e) => {
+    if (e.target.closest(".btn-edit-ingredient")) return;
+
+    const btn = card.querySelector(".btn-edit-ingredient");
+    if (btn) btn.click();
+  });
+});
+
 // Close modal when clicking outside the modal box.
 if (modalOverlay) {
   modalOverlay.addEventListener("click", (e) => {
@@ -184,44 +194,4 @@ document.querySelectorAll(".alert").forEach((alert) => {
     alert.style.opacity = "0";
     setTimeout(() => alert.remove(), 500);
   }, 3000);
-});
-
-// ── Card quantity +/- buttons ──
-document.querySelectorAll(".card-qty-btn").forEach((btn) => {
-  btn.addEventListener("click", async () => {
-    const id = btn.dataset.id;
-    const action = btn.dataset.action;
-
-    const display = document.getElementById(`qty-display-${id}`);
-    const currentQty = parseFloat(display.textContent.trim());
-
-    // กำหนด step ตาม unit
-    const unit = display.textContent.trim().replace(/^[\d.]+\s*/, "");
-    const smallUnits = ["g", "ml", "l"];
-    const step = smallUnits.includes(unit.trim()) ? 5 : 1;
-
-    if (action === "decrease") {
-      if (currentQty <= step) {
-        const confirmed = confirm(
-          "This ingredient is out of stock. Do you want to remove it?",
-        );
-        if (!confirmed) return;
-        await fetch(`/ingredient/${id}/delete`, { method: "POST" });
-        const card = btn.closest(".ingredient-card");
-        if (card) card.remove();
-        return;
-      }
-    }
-
-    const res = await fetch(`/ingredient/${id}/quantity`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, step }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      display.textContent = `${data.quantity} ${unit}`;
-    }
-  });
 });

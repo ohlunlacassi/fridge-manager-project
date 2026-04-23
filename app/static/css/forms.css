@@ -6,10 +6,6 @@
   margin-bottom: 1rem;
 }
 
-.form-group.form-group--tight {
-  margin-bottom: 0 !important;
-}
-
 .form-group label {
   font-size: 1rem;
   font-weight: 500;
@@ -56,16 +52,6 @@
 
 .btn-primary:hover {
   background: #333;
-}
-
-/* Destructive actions e.g. delete */
-.btn-danger {
-  background: #dc2626;
-  color: #fff;
-}
-
-.btn-danger:hover {
-  background: #b91c1c;
 }
 
 /* Neutral / cancel actions */
