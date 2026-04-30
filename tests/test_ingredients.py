@@ -584,3 +584,110 @@ def test_use_first_requires_login(client):
     response = client.get("/?filter=use-first", follow_redirects=False)
     assert response.status_code == 302
     assert "/login" in response.headers["Location"]
+
+    # --- Low Stock Toggle (US9) ---
+
+def test_is_low_stock_defaults_to_false(client, app):
+    """Ingredient is_low_stock defaults to False when added."""
+    with app.app_context():
+        make_user()
+    login(client)
+
+    client.post("/ingredient/add", data={
+        "name": "Butter",
+        "quantity": "1",
+        "unit": "piece(s)",
+        "category": "Dairy",
+    })
+
+    with app.app_context():
+        ing = Ingredient.query.filter_by(name="Butter").first()
+        assert ing.is_low_stock is False
+
+
+def test_edit_marks_ingredient_as_low_stock(client, app):
+    """Submitting edit with checkbox checked sets is_low_stock to True."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id)
+        ing_id = ing.id
+
+    login(client)
+    client.post(f"/ingredient/{ing_id}/edit", data={
+        "name": "Milk",
+        "quantity": "1",
+        "unit": "l",
+        "category": "Dairy",
+        "is_low_stock": "on",  # checkbox checked
+    })
+
+    with app.app_context():
+        updated = db.session.get(Ingredient, ing_id)
+        assert updated.is_low_stock is True
+
+
+def test_edit_unmarks_ingredient_as_low_stock(client, app):
+    """Submitting edit without checkbox resets is_low_stock to False."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id)
+        ing.is_low_stock = True
+        db.session.commit()
+        ing_id = ing.id
+
+    login(client)
+    client.post(f"/ingredient/{ing_id}/edit", data={
+        "name": "Milk",
+        "quantity": "1",
+        "unit": "l",
+        "category": "Dairy",
+        # is_low_stock omitted = checkbox unchecked
+    })
+
+    with app.app_context():
+        updated = db.session.get(Ingredient, ing_id)
+        assert updated.is_low_stock is False
+
+
+def test_dashboard_shows_low_stock_data_attribute(client, app):
+    """Dashboard renders data-is-low-stock=true when ingredient is low stock."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id, name="Eggs")
+        ing.is_low_stock = True
+        db.session.commit()
+
+    login(client)
+    response = client.get("/")
+
+    assert b'data-is-low-stock="true"' in response.data
+
+
+def test_dashboard_shows_not_low_stock_data_attribute(client, app):
+    """Dashboard renders data-is-low-stock=false when ingredient is not low stock."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient(user.id, name="Cheese")
+
+    login(client)
+    response = client.get("/")
+
+    assert b'data-is-low-stock="false"' in response.data
+
+
+def test_low_stock_flag_persists_after_quantity_update(client, app):
+    """Updating quantity via fetch does not change is_low_stock flag."""
+    with app.app_context():
+        user = make_user()
+        ing = make_ingredient(user.id, quantity=5.0)
+        ing.is_low_stock = True
+        db.session.commit()
+        ing_id = ing.id
+
+    login(client)
+    client.post(f"/ingredient/{ing_id}/quantity",
+                json={"action": "increase", "step": 1})
+
+    with app.app_context():
+        updated = db.session.get(Ingredient, ing_id)
+        assert updated.is_low_stock is True
