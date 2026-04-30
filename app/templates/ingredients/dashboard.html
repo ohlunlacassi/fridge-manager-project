@@ -1,24 +1,51 @@
 {% extends "base.html" %} {% block title %}My Ingredients — Fridge Manager{%
 endblock %} {% block content %}
 
+{# ── Category filter tabs ── #}
 <div class="toolbar">
   <div class="filter-tabs">
-    <button class="filter-tab active" data-category="all">All</button>
-    <button class="filter-tab" data-category="Drinks">Drinks</button>
-    <button class="filter-tab" data-category="Vegetables">Vegetable</button>
-    <button class="filter-tab" data-category="Dairy">Dairy Products</button>
-    <button class="filter-tab" data-category="Meat">Meat</button>
-    <button class="filter-tab" data-category="Condiments">Condiments</button>
-    <button class="filter-tab" data-category="Other">Other</button>
+    <button
+      class="filter-tab {% if active_category == 'all' and filter_mode != 'use-first' %}active{% endif %}"
+      data-category="all"
+    >All</button>
+    <button
+      class="filter-tab {% if active_category == 'Drinks' %}active{% endif %}"
+      data-category="Drinks"
+    >Drinks</button>
+    <button
+      class="filter-tab {% if active_category == 'Vegetables' %}active{% endif %}"
+      data-category="Vegetables"
+    >Vegetable</button>
+    <button
+      class="filter-tab {% if active_category == 'Dairy' %}active{% endif %}"
+      data-category="Dairy"
+    >Dairy Products</button>
+    <button
+      class="filter-tab {% if active_category == 'Meat' %}active{% endif %}"
+      data-category="Meat"
+    >Meat</button>
+    <button
+      class="filter-tab {% if active_category == 'Spices' %}active{% endif %}"
+      data-category="Spices"
+    >Spices</button>
+    <button
+      class="filter-tab {% if active_category == 'Other' %}active{% endif %}"
+      data-category="Other"
+    >Other</button>
   </div>
 </div>
 
+{# ── Secondary toolbar: Use First (left) | Sort by + Add (right) ── #}
 <div class="toolbar-right">
-  <button class="btn-icon" id="sort-btn">
+  {# Use First — links to ?filter=use-first; active when filter is applied #}
+  <a
+    href="{{ url_for('main.index') if filter_mode == 'use-first' else url_for('main.index', filter='use-first') }}"
+  class="btn-icon btn-use-first {% if filter_mode == 'use-first' %}active{% endif %}"
+>
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
+      width="15"
+      height="15"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -26,45 +53,65 @@ endblock %} {% block content %}
       stroke-linecap="round"
       stroke-linejoin="round"
     >
-      <path d="M3 6h18M7 12h10M11 18h2" />
+      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+      <path d="M12 6v6l4 2" />
     </svg>
-    Sort by
-  </button>
+    Use First
+  </a>
 
-  {# Sort dropdown #}
-  <div class="sort-dropdown" id="sort-dropdown" style="display: none">
-    <button class="sort-option active" data-sort="date-added-desc">
-      Date added (newest first)
+  <div class="toolbar-right-actions">
+    {# Sort dropdown trigger #}
+    <button class="btn-icon" id="sort-btn">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M3 6h18M7 12h10M11 18h2" />
+      </svg>
+      Sort by
     </button>
-    <button class="sort-option" data-sort="date-added-asc">
-      Date added (oldest first)
+
+    {# Sort dropdown #}
+    <div class="sort-dropdown" id="sort-dropdown" style="display: none">
+      <button class="sort-option active" data-sort="date-added-desc">
+        Date added (newest first)
+      </button>
+      <button class="sort-option" data-sort="date-added-asc">
+        Date added (oldest first)
+      </button>
+      <button class="sort-option" data-sort="expiry-asc">
+        Expiry date (nearest first)
+      </button>
+      <button class="sort-option" data-sort="expiry-desc">
+        Expiry date (latest first)
+      </button>
+      <button class="sort-option" data-sort="name">Name (A–Z)</button>
+    </div>
+
+    <button class="btn btn-primary btn-sm" id="open-add-modal">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+      Add
     </button>
-    <button class="sort-option" data-sort="expiry-asc">
-      Expiry date (nearest first)
-    </button>
-    <button class="sort-option" data-sort="expiry-desc">
-      Expiry date (latest first)
-    </button>
-    <button class="sort-option" data-sort="name-asc">Name (A–Z)</button>
-    <button class="sort-option" data-sort="name-dsc">Name (Z-A)</button>
   </div>
-
-  <button class="btn btn-primary btn-sm" id="open-add-modal">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-    Add
-  </button>
 </div>
 
 {% if ingredients %}
@@ -178,7 +225,7 @@ endblock %} {% block content %}
           <path d="M5 8h14" />
           <path d="M16 8l1 3a4 4 0 0 1-4 4" />
         </svg>
-        {% elif ingredient.category == "Condiments" %}
+        {% elif ingredient.category == "Spices" %}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -227,9 +274,30 @@ endblock %} {% block content %}
       </div>
       <div class="ingredient-quantity-block">
         <p class="ingredient-quantity-label">amount</p>
-        <span class="ingredient-quantity">
-  {{ ingredient.quantity | int if ingredient.quantity == ingredient.quantity | int else ingredient.quantity }} {{ ingredient.unit }}
-</span>
+        <div class="ingredient-quantity-controls">
+          <button
+            class="card-qty-btn"
+            data-id="{{ ingredient.id }}"
+            data-action="decrease"
+          >
+            -
+          </button>
+          <span
+            class="ingredient-quantity"
+            id="qty-display-{{ ingredient.id }}"
+          >
+            {{ ingredient.quantity | int if ingredient.quantity ==
+            ingredient.quantity | int else ingredient.quantity }} {{
+            ingredient.unit }}
+          </span>
+          <button
+            class="card-qty-btn"
+            data-id="{{ ingredient.id }}"
+            data-action="increase"
+          >
+            +
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -237,7 +305,14 @@ endblock %} {% block content %}
 </div>
 
 {% else %}
+{# ── Empty state — message differs based on active filter ── #}
 <div class="empty-state" id="ingredient-grid">
+  {% if filter_mode == 'use-first' %}
+  <p>No ingredients expiring within the next 5 days.</p>
+  <a href="{{ url_for('main.index') }}" class="btn btn-secondary" style="width: auto; padding: 0.6rem 2rem">
+    View all ingredients
+  </a>
+  {% else %}
   <p>Your inventory is empty.</p>
   <button
     class="btn btn-primary"
@@ -246,8 +321,11 @@ endblock %} {% block content %}
   >
     Add your first ingredient
   </button>
+  {% endif %}
 </div>
-{% endif %} {# ── No results message ── #}
+{% endif %}
+
+{# ── No results message (shown by JS during client-side search/filter) ── #}
 <div id="no-results-msg" class="empty-state" style="display: none">
   <p>No ingredients found.</p>
 </div>
@@ -304,7 +382,6 @@ endblock %} {% block content %}
           id="expiry_date"
           name="expiry_date"
           min="{{ today }}"
-          max="{{ max_date }}"
         />
       </div>
       <div class="modal-actions">
@@ -371,8 +448,10 @@ endblock %} {% block content %}
         </select>
       </div>
       <div class="form-group">
-        <label for="edit-expiry">Expiry Date <span class="optional">(optional)</span></label>
-        <input type="date" id="edit-expiry" name="expiry_date" max="{{max_date}}" />
+        <label for="edit-expiry"
+          >Expiry Date <span class="optional">(optional)</span></label
+        >
+        <input type="date" id="edit-expiry" name="expiry_date" />
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" id="edit-cancel-btn">

@@ -27,11 +27,52 @@ def get_dates() -> dict:
 @main.route("/")
 @login_required
 def index():
-    """Dashboard — show all ingredients belonging to the current user."""
-    items = Ingredient.query.filter_by(user_id=current_user.id).order_by(Ingredient.id.desc()).all()
-    return render_template("ingredients/dashboard.html", ingredients=items,
-                           categories=CATEGORIES, units=UNITS,
-                           **get_dates())
+    """Dashboard — show ingredients belonging to the current user.
+
+    Supports two optional query parameters:
+      ?filter=use-first  — show only items expiring within 5 days (or expired),
+                           sorted by nearest expiry date ascending.
+      ?category=<name>   — filter by a single category (ignored when use-first
+                           is active).
+    """
+    filter_mode = request.args.get("filter", "")
+    active_category = request.args.get("category", "all")
+
+    base_query = Ingredient.query.filter_by(user_id=current_user.id)
+
+    if filter_mode == "use-first":
+        # Show only ingredients with an expiry date set that are already expired
+        # or expire within the next 5 days.  Expired items sort first because
+        # their date is earlier (ascending order).
+        cutoff = datetime.date.today() + datetime.timedelta(days=5)
+        ingredients = (
+            base_query
+            .filter(
+                Ingredient.expiry_date.isnot(None),
+                Ingredient.expiry_date <= cutoff,
+            )
+            .order_by(Ingredient.expiry_date.asc())
+            .all()
+        )
+    elif active_category != "all":
+        ingredients = (
+            base_query
+            .filter_by(category=active_category)
+            .order_by(Ingredient.id.desc())
+            .all()
+        )
+    else:
+        ingredients = base_query.order_by(Ingredient.id.desc()).all()
+
+    return render_template(
+        "ingredients/dashboard.html",
+        ingredients=ingredients,
+        categories=CATEGORIES,
+        units=UNITS,
+        active_category=active_category,
+        filter_mode=filter_mode,
+        **get_dates(),
+    )
 
 
 @main.route("/ingredient/add", methods=["GET", "POST"])

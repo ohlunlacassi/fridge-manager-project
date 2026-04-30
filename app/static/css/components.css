@@ -8,14 +8,47 @@
   gap: 0.75rem;
 }
 
+.toolbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
 .toolbar-right {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 5rem;
   width: 100%;
   margin-top: 3rem;
   position: relative;
+}
+
+/* Right-side group: Sort by + Add */
+.toolbar-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+/* ── Use First button ── */
+.btn-use-first {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Active state — filled black when filter is on */
+.btn-use-first.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.btn-use-first.active:hover {
+  background: #333;
+  border-color: #333;
 }
 
 /* ── Filter tabs — single bordered pill ── */
@@ -186,6 +219,26 @@
   color: #111;
 }
 
+.ingredient-quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.card-qty-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #666;
+  padding: 0 0.2rem;
+  line-height: 1;
+}
+
+.card-qty-btn:hover {
+  color: #000;
+}
+
 /* ── Empty state ── */
 .empty-state {
   text-align: center;
@@ -351,6 +404,10 @@
 /* ── Muted text ── */
 .muted {
   color: #999;
+}
+
+.btn {
+  border-radius: 999px;
 }
 
 /* ── Small button ── */
