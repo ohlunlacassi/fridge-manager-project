@@ -49,14 +49,13 @@ if (openBtn) openBtn.addEventListener("click", openModal);
 if (openBtnEmpty) openBtnEmpty.addEventListener("click", openModal);
 if (closeBtn) closeBtn.addEventListener("click", closeModal);
 
-// Close modal when clicking outside the modal box.
 if (modalOverlay) {
   modalOverlay.addEventListener("click", (e) => {
     if (e.target === modalOverlay) closeModal();
   });
 }
 
-// ─── Edit Ingredient Modal ───────────────────────────────────────────────────
+// ── Edit Ingredient Modal ────────────────────────────────────────────────────
 
 const editModal = document.getElementById("edit-modal");
 const editForm = document.getElementById("edit-form");
@@ -65,15 +64,20 @@ if (editModal && editForm) {
   document.querySelectorAll(".btn-edit-ingredient").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.getElementById("edit-name").value = btn.dataset.name;
-      document.getElementById("edit-quantity").value = parseFloat(
-        btn.dataset.quantity,
-      );
+      document.getElementById("edit-quantity").value = parseFloat(btn.dataset.quantity);
       document.getElementById("edit-expiry").value = btn.dataset.expiry;
 
       setSelectValue("edit-unit", btn.dataset.unit);
       setSelectValue("edit-category", btn.dataset.category);
 
       editForm.action = btn.dataset.url;
+
+      // US9 — sync low stock toggle with the ingredient's current flag
+      const lowStockToggle = document.getElementById("edit-is-low-stock");
+      if (lowStockToggle) {
+        lowStockToggle.checked = btn.dataset.isLowStock === "true";
+      }
+
       editModal.classList.add("open");
     });
   });
@@ -92,9 +96,7 @@ if (editModal && editForm) {
 
   if (deleteBtn && deleteForm) {
     deleteBtn.addEventListener("click", () => {
-      const confirmed = confirm(
-        "Are you sure you want to delete this ingredient?",
-      );
+      const confirmed = confirm("Are you sure you want to delete this ingredient?");
       if (!confirmed) return;
       deleteForm.action = editForm.action.replace("/edit", "/delete");
       deleteForm.submit();
@@ -143,20 +145,12 @@ if (editQtyPlus && editQtyInput) {
 document.querySelectorAll(".ingredient-card").forEach((card) => {
   card.addEventListener("click", (e) => {
     if (e.target.closest(".btn-edit-ingredient")) return;
-
     const btn = card.querySelector(".btn-edit-ingredient");
     if (btn) btn.click();
   });
 });
 
-// Close modal when clicking outside the modal box.
-if (modalOverlay) {
-  modalOverlay.addEventListener("click", (e) => {
-    if (e.target === modalOverlay) closeModal();
-  });
-}
-
-// ── Quantity +/- buttons in modal ──
+// ── Quantity +/- buttons in Add modal ──
 const qtyInput = document.getElementById("quantity");
 const qtyMinus = document.getElementById("qty-minus");
 const qtyPlus = document.getElementById("qty-plus");
@@ -180,26 +174,22 @@ const sortBtn = document.getElementById("sort-btn");
 const sortDropdown = document.getElementById("sort-dropdown");
 
 if (sortBtn && sortDropdown) {
-  // Toggle dropdown open/close
   sortBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     const isOpen = sortDropdown.style.display === "flex";
     sortDropdown.style.display = isOpen ? "none" : "flex";
   });
 
-  // Close dropdown when clicking outside
   document.addEventListener("click", () => {
     sortDropdown.style.display = "none";
   });
 
-  // Prevent clicks inside dropdown from closing it
   sortDropdown.addEventListener("click", (e) => {
     e.stopPropagation();
   });
 
   sortDropdown.querySelectorAll(".sort-option").forEach((option) => {
     option.addEventListener("click", () => {
-      // Update active state
       sortDropdown
         .querySelectorAll(".sort-option")
         .forEach((o) => o.classList.remove("active"));
@@ -212,12 +202,10 @@ if (sortBtn && sortDropdown) {
       const cards = [...grid.querySelectorAll(".ingredient-card")];
 
       cards.sort((a, b) => {
-        if (sortBy === "name-asc") {
+        if (sortBy === "name-asc")
           return (a.dataset.name || "").localeCompare(b.dataset.name || "");
-        }
-        if (sortBy === "name-dsc") {
+        if (sortBy === "name-dsc")
           return (b.dataset.name || "").localeCompare(a.dataset.name || "");
-        }
         if (sortBy === "expiry-asc") {
           const da = a.dataset.expiry || "9999-12-31";
           const db = b.dataset.expiry || "9999-12-31";
@@ -228,10 +216,8 @@ if (sortBtn && sortDropdown) {
           const db = b.dataset.expiry || "0000-01-01";
           return db.localeCompare(da);
         }
-        if (sortBy === "date-added-asc") {
+        if (sortBy === "date-added-asc")
           return parseInt(a.dataset.id) - parseInt(b.dataset.id);
-        }
-        // date-added-desc (default)
         return parseInt(b.dataset.id) - parseInt(a.dataset.id);
       });
 
@@ -277,8 +263,7 @@ if (searchInput) {
     });
 
     const emptyMsg = document.getElementById("no-results-msg");
-    if (emptyMsg)
-      emptyMsg.style.display = visibleCount === 0 ? "block" : "none";
+    if (emptyMsg) emptyMsg.style.display = visibleCount === 0 ? "block" : "none";
   });
 }
 
@@ -291,26 +276,9 @@ document.querySelectorAll(".alert").forEach((alert) => {
   }, 3000);
 });
 
-// ── Low stock color (US9) ────────────────────────────────────────────────────
-// Thresholds must match LOW_STOCK_THRESHOLDS in ingredient.py exactly.
-const LOW_STOCK_THRESHOLDS = { "piece(s)": 3, kg: 3, g: 300, l: 3, ml: 300 };
-const LOW_STOCK_FALLBACK = 1;
-
-function isLowStock(quantity, unit) {
-  const threshold =
-    unit in LOW_STOCK_THRESHOLDS ? LOW_STOCK_THRESHOLDS[unit] : LOW_STOCK_FALLBACK;
-  return quantity < threshold;
-}
-
-function applyLowStockClass(spanEl) {
-  const qty = parseFloat(spanEl.dataset.quantity);
-  const unit = (spanEl.dataset.unit || "").trim();
-  if (!isNaN(qty) && isLowStock(qty, unit)) {
-    spanEl.classList.add("amount-low");
-  } else {
-    spanEl.classList.remove("amount-low");
+// ── Low stock — apply .amount-low class on page load (US9) ──
+document.querySelectorAll(".ingredient-quantity[data-is-low-stock]").forEach((span) => {
+  if (span.dataset.isLowStock === "true") {
+    span.classList.add("amount-low");
   }
-}
-
-// Apply on page load for every ingredient card.
-document.querySelectorAll(".ingredient-quantity[data-quantity]").forEach(applyLowStockClass);
+});

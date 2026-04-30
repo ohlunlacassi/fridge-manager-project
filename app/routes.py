@@ -111,7 +111,6 @@ def ingredient_add():
             category=category,
             expiry_date=expiry_date,
         )
-        ingredient.update_low_stock()  # US9
         db.session.add(ingredient)
         db.session.commit()
 
@@ -180,7 +179,7 @@ def ingredient_edit(id: int):
         ingredient.unit = unit
         ingredient.category = category
         ingredient.expiry_date = expiry_date
-        ingredient.update_low_stock()  # US9
+        ingredient.is_low_stock = request.form.get("is_low_stock") == "on" 
         db.session.commit()
 
         flash(f'"{name}" has been updated.', "success")
@@ -208,7 +207,6 @@ def ingredient_update_quantity(id: int):
     elif action == 'decrease':
         ingredient.quantity = max(0, ingredient.quantity - step)
 
-    ingredient.update_low_stock()  # US9
     db.session.commit()
 
     # Return is_low_stock so JS can update the card color immediately.
