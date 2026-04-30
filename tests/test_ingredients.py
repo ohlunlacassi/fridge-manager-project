@@ -430,3 +430,157 @@ def test_dashboard_shows_no_expiry_when_not_set(client, app):
     response = client.get("/")
 
     assert b"no expiry" in response.data
+
+# --- Use First Filter (US10) ---
+
+def make_ingredient_expiry(user_id: int, name: str, days_from_today: int | None) -> Ingredient:
+    """Create an ingredient with expiry set to today + days_from_today.
+    Pass None to create an ingredient with no expiry date.
+    Negative values produce a past date (already expired).
+    """
+    expiry = (
+        datetime.date.today() + datetime.timedelta(days=days_from_today)
+        if days_from_today is not None
+        else None
+    )
+    ing = Ingredient(
+        user_id=user_id,
+        name=name,
+        quantity=1.0,
+        unit="piece(s)",
+        category="Other",
+        expiry_date=expiry,
+    )
+    db.session.add(ing)
+    db.session.commit()
+    return ing
+
+
+def test_use_first_returns_200(client, app):
+    """?filter=use-first returns 200."""
+    with app.app_context():
+        make_user()
+    login(client)
+    response = client.get("/?filter=use-first")
+    assert response.status_code == 200
+
+
+def test_use_first_shows_expired_ingredient(client, app):
+    """Ingredient already expired appears in use-first list."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient_expiry(user.id, "Expired Milk", days_from_today=-1)
+
+    login(client)
+    response = client.get("/?filter=use-first")
+    assert b"Expired Milk" in response.data
+
+
+def test_use_first_shows_ingredient_expiring_today(client, app):
+    """Ingredient expiring today (day 0) appears in use-first list."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient_expiry(user.id, "Expires Today", days_from_today=0)
+
+    login(client)
+    response = client.get("/?filter=use-first")
+    assert b"Expires Today" in response.data
+
+
+def test_use_first_shows_ingredient_expiring_within_5_days(client, app):
+    """Ingredient expiring in exactly 5 days appears in use-first list."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient_expiry(user.id, "Almost Gone", days_from_today=5)
+
+    login(client)
+    response = client.get("/?filter=use-first")
+    assert b"Almost Gone" in response.data
+
+
+def test_use_first_excludes_ingredient_expiring_after_5_days(client, app):
+    """Ingredient expiring in 6+ days is excluded from use-first list."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient_expiry(user.id, "Still Fresh", days_from_today=6)
+
+    login(client)
+    response = client.get("/?filter=use-first")
+    assert b"Still Fresh" not in response.data
+
+
+def test_use_first_excludes_ingredient_with_no_expiry(client, app):
+    """Ingredient with no expiry date is excluded from use-first list."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient_expiry(user.id, "No Expiry Salt", days_from_today=None)
+
+    login(client)
+    response = client.get("/?filter=use-first")
+    assert b"No Expiry Salt" not in response.data
+
+
+def test_use_first_sort_expired_before_warning(client, app):
+    """Expired items appear before items expiring soon (ascending date order)."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient_expiry(user.id, "Expiring Soon", days_from_today=4)
+        make_ingredient_expiry(user.id, "Already Expired", days_from_today=-2)
+
+    login(client)
+    response = client.get("/?filter=use-first")
+
+    expired_pos = response.data.find(b"Already Expired")
+    soon_pos    = response.data.find(b"Expiring Soon")
+    assert expired_pos < soon_pos
+
+
+def test_use_first_sort_nearest_expiry_first(client, app):
+    """Among items expiring soon, nearest expiry date appears first."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient_expiry(user.id, "Day Five",  days_from_today=5)
+        make_ingredient_expiry(user.id, "Day One",   days_from_today=1)
+        make_ingredient_expiry(user.id, "Day Three", days_from_today=3)
+
+    login(client)
+    response = client.get("/?filter=use-first")
+
+    pos_one   = response.data.find(b"Day One")
+    pos_three = response.data.find(b"Day Three")
+    pos_five  = response.data.find(b"Day Five")
+    assert pos_one < pos_three < pos_five
+
+
+def test_use_first_shows_only_own_ingredients(client, app):
+    """Use-first filter only shows the logged-in user's ingredients."""
+    with app.app_context():
+        user_a = make_user(email="a@example.com")
+        user_b = make_user(full_name="User B", email="b@example.com")
+        make_ingredient_expiry(user_a.id, "My Cheese",     days_from_today=2)
+        make_ingredient_expiry(user_b.id, "Their Chicken", days_from_today=1)
+
+    login(client, email="a@example.com")
+    response = client.get("/?filter=use-first")
+
+    assert b"My Cheese"     in response.data
+    assert b"Their Chicken" not in response.data
+
+
+def test_use_first_empty_state_when_nothing_expiring(client, app):
+    """Use-first shows empty message when no ingredients are expiring soon."""
+    with app.app_context():
+        user = make_user()
+        make_ingredient_expiry(user.id, "Fresh Item", days_from_today=30)
+
+    login(client)
+    response = client.get("/?filter=use-first")
+
+    assert b"No ingredients expiring" in response.data
+
+
+def test_use_first_requires_login(client):
+    """Unauthenticated access to ?filter=use-first redirects to login."""
+    response = client.get("/?filter=use-first", follow_redirects=False)
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
