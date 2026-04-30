@@ -225,6 +225,10 @@
   gap: 0.4rem;
 }
 
+.amount-low {
+  color: #ef4444;
+}
+
 .card-qty-btn {
   background: none;
   border: none;

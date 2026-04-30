@@ -290,3 +290,27 @@ document.querySelectorAll(".alert").forEach((alert) => {
     setTimeout(() => alert.remove(), 500);
   }, 3000);
 });
+
+// ── Low stock color (US9) ────────────────────────────────────────────────────
+// Thresholds must match LOW_STOCK_THRESHOLDS in ingredient.py exactly.
+const LOW_STOCK_THRESHOLDS = { "piece(s)": 3, kg: 3, g: 300, l: 3, ml: 300 };
+const LOW_STOCK_FALLBACK = 1;
+
+function isLowStock(quantity, unit) {
+  const threshold =
+    unit in LOW_STOCK_THRESHOLDS ? LOW_STOCK_THRESHOLDS[unit] : LOW_STOCK_FALLBACK;
+  return quantity < threshold;
+}
+
+function applyLowStockClass(spanEl) {
+  const qty = parseFloat(spanEl.dataset.quantity);
+  const unit = (spanEl.dataset.unit || "").trim();
+  if (!isNaN(qty) && isLowStock(qty, unit)) {
+    spanEl.classList.add("amount-low");
+  } else {
+    spanEl.classList.remove("amount-low");
+  }
+}
+
+// Apply on page load for every ingredient card.
+document.querySelectorAll(".ingredient-quantity[data-quantity]").forEach(applyLowStockClass);

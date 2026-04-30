@@ -283,9 +283,11 @@ endblock %} {% block content %}
             -
           </button>
           <span
-            class="ingredient-quantity"
-            id="qty-display-{{ ingredient.id }}"
-          >
+  class="ingredient-quantity"
+  id="qty-display-{{ ingredient.id }}"
+  data-quantity="{{ ingredient.quantity }}"
+  data-unit="{{ ingredient.unit }}"
+>
             {{ ingredient.quantity | int if ingredient.quantity ==
             ingredient.quantity | int else ingredient.quantity }} {{
             ingredient.unit }}
