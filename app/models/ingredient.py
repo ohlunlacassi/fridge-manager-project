@@ -1,17 +1,6 @@
 import datetime
 from app import db
 
-# Low stock thresholds per unit (US9).
-LOW_STOCK_THRESHOLDS: dict[str, float] = {
-    "piece(s)": 3,
-    "kg": 3,
-    "g": 300,
-    "l": 3,
-    "ml": 300,
-}
-LOW_STOCK_FALLBACK: float = 1  # for any unit not in the table above
-
-
 class Ingredient(db.Model):
     """A single item in the user's fridge or pantry."""
 
@@ -41,15 +30,6 @@ class Ingredient(db.Model):
         if delta <= 7:
             return "warning"
         return "fresh"
-
-    def update_low_stock(self) -> None:
-        """Set is_low_stock based on quantity vs the threshold for this unit.
-
-        Called after every quantity or unit change so the flag stays in sync.
-        The caller is responsible for committing the session.
-        """
-        threshold = LOW_STOCK_THRESHOLDS.get(self.unit, LOW_STOCK_FALLBACK)
-        self.is_low_stock = self.quantity < threshold
 
     def __repr__(self) -> str:
         return f"<Ingredient {self.name!r}>"
