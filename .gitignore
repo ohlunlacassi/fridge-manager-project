@@ -8,3 +8,5 @@ uploads/
 .pytest_cache/
 *.dbmigrations/
 instance/
+migrations/
+instance/
