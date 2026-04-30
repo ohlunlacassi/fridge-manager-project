@@ -8,18 +8,12 @@
   gap: 0.75rem;
 }
 
-.toolbar {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
 .toolbar-right {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 5rem;
+  margin-bottom: 1.5rem;
   width: 100%;
   margin-top: 3rem;
   position: relative;
@@ -219,24 +213,9 @@
   color: #111;
 }
 
-.ingredient-quantity-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.card-qty-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  color: #666;
-  padding: 0 0.2rem;
-  line-height: 1;
-}
-
-.card-qty-btn:hover {
-  color: #000;
+/* US9 — amount turns red when low stock */
+.amount-low {
+  color: #ef4444;
 }
 
 /* ── Empty state ── */
@@ -406,8 +385,11 @@
   color: #999;
 }
 
-.btn {
-  border-radius: 999px;
+/* ── Optional label ── */
+.optional {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  font-weight: 400;
 }
 
 /* ── Small button ── */
@@ -486,4 +468,54 @@
 
 .sort-option.active {
   font-weight: 600;
+}
+
+/* ── Low stock toggle (US9) ── */
+.low-stock-toggle-group {
+  margin-bottom: 0.75rem;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-switch {
+  width: 36px;
+  height: 20px;
+  background: #d1d5db;
+  border-radius: 999px;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.toggle-switch::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s;
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-switch {
+  background: #ef4444;
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-switch::after {
+  transform: translateX(16px);
 }
