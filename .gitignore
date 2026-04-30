@@ -6,4 +6,5 @@ uploads/
 *.egg-info/
 .DS_Store
 .pytest_cache/
-*.db
+*.dbmigrations/
+instance/
