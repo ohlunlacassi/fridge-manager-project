@@ -1,104 +1,230 @@
-/* ── Full-screen background — image added later via .auth-bg in CSS or inline ── */
-.auth-bg {
+/* ── Auth body ── */
+.auth-body {
+  background: #0e0e10;
   min-height: 100vh;
-  background: url("/static/img/auth-bg.png") center/100% no-repeat;
+  display: flex;
+  flex-direction: column;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+/* ── Navbar ── */
+.auth-navbar {
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+}
+
+.auth-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+/* logo-mark, logo-name, logo-dot reused from components.css */
+
+/* ── Wrapper — centers the panel ── */
+.auth-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 2rem 2.5rem;
+}
+
+/* ── Two-panel card ── */
+.auth-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 1000px;
+  min-height: 600px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Left panel — yellow gradient ── */
+.auth-left {
+  background: linear-gradient(160deg, #ffd23f 0%, #f5c800 50%, #c8e87a 100%);
+  padding: 2.5rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   position: relative;
   overflow: hidden;
 }
 
-/* ── Logo — top left corner ── */
-.auth-logo {
-  position: absolute;
-  top: 2.5rem;
-  left: 3.5rem;
+.auth-left-content {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-eyebrow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.auth-logo-text {
-  font-size: 1.5rem;
+  gap: 8px;
+  font-size: 0.65rem;
   font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  color: rgba(0, 0, 0, 0.5);
+  margin-bottom: 1rem;
 }
 
-/* ── Card wrapper — positions card on the left, vertically centered ── */
-.auth-card-wrapper {
-  position: absolute;
-  top: 55%;
-  left: 7%;
-  transform: translateY(-50%);
-  width: 40%;
-  max-width: 600px;
+.auth-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #111;
+  flex-shrink: 0;
 }
 
-/* ── Auth card ── */
-.auth-card {
+.auth-left-headline {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+}
+
+.auth-left-headline em {
+  font-family: "Instrument Serif", serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #111;
+}
+
+.auth-left-desc {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.55;
+  max-width: 300px;
+}
+
+/* Illustration */
+.auth-illustration {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.auth-illustration img {
+  max-height: 260px;
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.12));
+}
+
+/* ── Right panel — white form ── */
+.auth-right {
   background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
-  padding: 3.5rem 2.5rem 3.5rem;
-  width: 100%;
-  min-height: 520px;
+  padding: 3rem 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.auth-card h1 {
+/* ── Form headings ── */
+.auth-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #1a1a1a;
-  text-align: center;
-  margin-bottom: 0.3rem;
+  color: #111;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.4rem;
+  line-height: 1.1;
+}
+
+.auth-title em {
+  font-family: "Instrument Serif", serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #ffd23f;
 }
 
 .auth-subtitle {
-  font-size: 1.2rem;
+  font-size: 0.85rem;
   color: #9ca3af;
-  text-align: center;
-  margin-bottom: 3.5rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
 }
 
-/* ── Input overrides — gray background, no visible border ── */
-.auth-card .form-group input {
-  background: #f3f4f6;
-  border: 1px solid #f3f4f6;
-  border-radius: 8px;
-  padding: 0.7rem 0.9rem;
+/* ── Input fields ── */
+.auth-right .form-group {
+  margin-bottom: 1rem;
 }
 
-.auth-card .form-group input:focus {
-  background: #fff;
-  border-color: #6b7280;
+.auth-right .form-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.4rem;
+  display: block;
 }
 
-/* ── Button — dark, full width ── */
-.auth-card .btn-primary {
-  background: #2d3748;
-  color: #fff;
-  border-radius: 8px;
-  padding: 1rem;
-  font-size: 1.2rem;
+.auth-right .form-group input {
   width: 100%;
+  background: #f3f4f6;
+  border: 1.5px solid #f3f4f6;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #111;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.auth-right .form-group input:focus {
+  outline: none;
+  background: #fff;
+  border-color: #111;
+}
+
+/* ── Submit button ── */
+.auth-right .btn-primary {
+  width: 100%;
+  background: #111 !important;
+  color: #fff !important;
+  border-radius: 999px;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
   margin-top: 0.5rem;
-  letter-spacing: 0.01em;
+  transition: background 0.15s;
 }
 
-.auth-card .btn-primary:hover {
-  background: #1a202c;
+.auth-right .btn-primary:hover {
+  background: #333 !important;
+  transform: none;
+  box-shadow: none;
 }
 
-/* ── Footer link — sits below the card ── */
+/* ── Footer link ── */
 .auth-footer {
   margin-top: 1.5rem;
-  font-size: 1rem;
-  color: #ffffff95;
+  font-size: 0.82rem;
+  color: #6b7280;
   text-align: center;
 }
 
 .auth-footer a {
-  color: #fff;
+  color: #111;
   font-weight: 700;
   text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Flash messages ── */
+.auth-right .alert {
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
 }
