@@ -126,7 +126,7 @@ const editQtyPlus = document.getElementById("edit-qty-plus");
 
 function getEditStep() {
   const unit = document.getElementById("edit-unit").value.trim();
-  return ["g", "ml", "l"].includes(unit) ? 5 : 1;
+  return ["g", "ml"].includes(unit) ? 5 : 1;
 }
 
 if (editQtyMinus && editQtyInput) {
