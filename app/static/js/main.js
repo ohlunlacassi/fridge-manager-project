@@ -64,7 +64,9 @@ if (editModal && editForm) {
   document.querySelectorAll(".btn-edit-ingredient").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.getElementById("edit-name").value = btn.dataset.name;
-      document.getElementById("edit-quantity").value = parseFloat(btn.dataset.quantity);
+      document.getElementById("edit-quantity").value = parseFloat(
+        btn.dataset.quantity,
+      );
       document.getElementById("edit-expiry").value = btn.dataset.expiry;
 
       setSelectValue("edit-unit", btn.dataset.unit);
@@ -96,7 +98,9 @@ if (editModal && editForm) {
 
   if (deleteBtn && deleteForm) {
     deleteBtn.addEventListener("click", () => {
-      const confirmed = confirm("Are you sure you want to delete this ingredient?");
+      const confirmed = confirm(
+        "Are you sure you want to delete this ingredient?",
+      );
       if (!confirmed) return;
       deleteForm.action = editForm.action.replace("/edit", "/delete");
       deleteForm.submit();
@@ -122,7 +126,7 @@ const editQtyPlus = document.getElementById("edit-qty-plus");
 
 function getEditStep() {
   const unit = document.getElementById("edit-unit").value.trim();
-  return ["g", "ml", "l"].includes(unit) ? 5 : 1;
+  return ["g", "ml"].includes(unit) ? 5 : 1;
 }
 
 if (editQtyMinus && editQtyInput) {
@@ -257,13 +261,14 @@ if (searchInput) {
 
     ingredientCards.forEach((card) => {
       const name = card.dataset.name || "";
-      const visible = name.includes(query);
+      const visible = name.startsWith(query);
       card.style.display = visible ? "" : "none";
       if (visible) visibleCount++;
     });
 
     const emptyMsg = document.getElementById("no-results-msg");
-    if (emptyMsg) emptyMsg.style.display = visibleCount === 0 ? "block" : "none";
+    if (emptyMsg)
+      emptyMsg.style.display = visibleCount === 0 ? "block" : "none";
   });
 }
 
@@ -277,8 +282,10 @@ document.querySelectorAll(".alert").forEach((alert) => {
 });
 
 // ── Low stock — apply .amount-low class on page load (US9) ──
-document.querySelectorAll(".ingredient-quantity[data-is-low-stock]").forEach((span) => {
-  if (span.dataset.isLowStock === "true") {
-    span.classList.add("amount-low");
-  }
-});
+document
+  .querySelectorAll(".ingredient-quantity[data-is-low-stock]")
+  .forEach((span) => {
+    if (span.dataset.isLowStock === "true") {
+      span.classList.add("amount-low");
+    }
+  });

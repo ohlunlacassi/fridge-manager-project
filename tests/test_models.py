@@ -120,7 +120,7 @@ def test_expiry_status_no_date(app):
     """Ingredient with no expiry date returns 'fresh'."""
     user = make_user()
     ingredient = Ingredient(
-        user_id=user.id, name="Salt", quantity=500.0, unit="g", category="Spices"
+        user_id=user.id, name="Salt", quantity=500.0, unit="g", category="Condiments"
     )
     assert ingredient.expiry_status == "fresh"
 

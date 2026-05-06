@@ -12,7 +12,7 @@ main = Blueprint("main", __name__)
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 CATEGORIES = ["Vegetables", "Dairy", "Meat", "Condiments", "Drinks", "Other"]
-UNITS = ["g", "kg", "ml", "l", "piece(s)"]
+UNITS = ["g", "kg", "ml", "l", "pcs"]
 
 
 def get_dates() -> dict:
@@ -29,7 +29,7 @@ def index():
     base_query = Ingredient.query.filter_by(user_id=current_user.id)
 
     if filter_mode == "use-first":
-        cutoff = datetime.date.today() + datetime.timedelta(days=5)
+        cutoff = datetime.date.today() + datetime.timedelta(days=7)
         ingredients = (
             base_query
             .filter(Ingredient.expiry_date.isnot(None), Ingredient.expiry_date <= cutoff)

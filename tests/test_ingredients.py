@@ -406,7 +406,7 @@ def test_dashboard_shows_expiry_date(client, app):
             user_id=user.id,
             name="Yogurt",
             quantity=1.0,
-            unit="piece(s)",
+            unit="pcs",
             category="Dairy",
             expiry_date=datetime.date(2026, 12, 31),
         )
@@ -429,7 +429,7 @@ def test_dashboard_shows_no_expiry_when_not_set(client, app):
     login(client)
     response = client.get("/")
 
-    assert b"no expiry" in response.data
+    assert b"\xe2\x80\x94" in response.data
 
 # --- Use First Filter (US10) ---
 
@@ -447,7 +447,7 @@ def make_ingredient_expiry(user_id: int, name: str, days_from_today: int | None)
         user_id=user_id,
         name=name,
         quantity=1.0,
-        unit="piece(s)",
+        unit="pcs",
         category="Other",
         expiry_date=expiry,
     )
@@ -502,7 +502,7 @@ def test_use_first_excludes_ingredient_expiring_after_5_days(client, app):
     """Ingredient expiring in 6+ days is excluded from use-first list."""
     with app.app_context():
         user = make_user()
-        make_ingredient_expiry(user.id, "Still Fresh", days_from_today=6)
+        make_ingredient_expiry(user.id, "Still Fresh", days_from_today=8)
 
     login(client)
     response = client.get("/?filter=use-first")
@@ -596,7 +596,7 @@ def test_is_low_stock_defaults_to_false(client, app):
     client.post("/ingredient/add", data={
         "name": "Butter",
         "quantity": "1",
-        "unit": "piece(s)",
+        "unit": "pcs",
         "category": "Dairy",
     })
 

@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Fridge Manager{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap"
+      rel="stylesheet"
+    />
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/base.css') }}"
@@ -12,7 +18,6 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/forms.css') }}"
     />
-
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/components.css') }}"
@@ -20,40 +25,50 @@
   </head>
   <body>
     <nav class="navbar">
-      <a class="navbar-brand" href="{{ url_for('main.index') }}"
-        >Fridge Manager</a
-      >
-
-      <div class="navbar-links">
-        {% if current_user.is_authenticated %}
-        <input
-          type="search"
-          class="navbar-search"
-          placeholder="Search"
-          id="ingredient-search"
-        />
-        <span title="{{ current_user.full_name }}">
+      {# ── Logo ── #}
+      <a class="navbar-brand" href="{{ url_for('main.index') }}">
+        <div class="logo-mark">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="22"
             height="22"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor"
-            stroke-width="2"
+            stroke="#111"
+            stroke-width="2.2"
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+            <path
+              d="M12 2v20M4.93 4.93l14.14 14.14M2 12h20M4.93 19.07l14.14-14.14"
+            />
           </svg>
-        </span>
-        <a href="{{ url_for('main.logout') }}">Logout</a>
-        {% else %}
-        <a href="{{ url_for('main.login') }}">Login</a>
-        <a href="{{ url_for('main.register') }}">Register</a>
-        {% endif %}
+        </div>
+        <div class="logo-text">
+          <div class="logo-name">
+            Fridge<span class="logo-dot">·</span>Manager
+          </div>
+          <div class="logo-tagline">your daily inventory, sorted</div>
+        </div>
+      </a>
+
+      {# ── Right side ── #} {% if current_user.is_authenticated %}
+      <div class="navbar-right">
+        <div class="navbar-avatar" title="{{ current_user.full_name }}">
+          {{ current_user.full_name[0].upper() if current_user.full_name else
+          'U' }}
+        </div>
+
+        <a href="{{ url_for('main.logout') }}" class="navbar-logout">Logout</a>
       </div>
+      {% else %}
+      <div class="navbar-right">
+        <a href="{{ url_for('main.login') }}" class="navbar-logout">Login</a>
+        <a href="{{ url_for('main.register') }}" class="navbar-logout"
+          >Register</a
+        >
+      </div>
+      {% endif %}
     </nav>
 
     <main class="container">

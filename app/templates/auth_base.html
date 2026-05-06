@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Fridge Manager{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/components.css') }}"
+    />
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/base.css') }}"
@@ -17,25 +27,69 @@
       href="{{ url_for('static', filename='css/auth.css') }}"
     />
   </head>
-  {# auth-bg class on body — background image added here later via CSS #}
-  <body class="auth-bg">
-    {# Logo — top left, outside the card #}
-    <div class="auth-logo">
-      <span class="auth-logo-text">Fridge Manager</span>
-    </div>
+  <body class="auth-body">
+    {# ── Navbar ── #}
+    <nav class="auth-navbar">
+      <a class="auth-navbar-brand" href="#">
+        <div class="logo-mark">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#111"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M12 2v20M4.93 4.93l14.14 14.14M2 12h20M4.93 19.07l14.14-14.14"
+            />
+          </svg>
+        </div>
+        <span class="logo-name"
+          >Fridge<span class="logo-dot">·</span>Manager</span
+        >
+      </a>
+    </nav>
 
-    {# Card floats on the left side, vertically centered #}
-    <div class="auth-card-wrapper">
-      <div class="auth-card">
-        {# Flash messages inside the card #} {% with messages =
-        get_flashed_messages(with_categories=true) %} {% if messages %} {% for
-        category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+    {# ── Two-panel card ── #}
+    <div class="auth-wrapper">
+      <div class="auth-panel">
+        {# ── Left: illustration + copy ── #}
+        <div class="auth-left">
+          <div class="auth-left-content">
+            <div class="auth-eyebrow">
+              <span class="auth-eyebrow-dot"></span>
+              YOUR KITCHEN, SORTED
+            </div>
+            <h2 class="auth-left-headline">
+              Hello,<br /><em>fresh start.</em>
+            </h2>
+            <p class="auth-left-desc">
+              Track what's in your fridge, get nudges before food goes off, and
+              build a smarter shopping list.
+            </p>
+          </div>
+
+          <div class="auth-illustration">
+            <img
+              src="{{ url_for('static', filename='img/fridge-login-illustration.png') }}"
+              alt="Fridge illustration"
+            />
+          </div>
+        </div>
+
+        {# ── Right: form ── #}
+        <div class="auth-right">
+          {% with messages = get_flashed_messages(with_categories=true) %} {% if
+          messages %} {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock
+          %} {% block auth_footer %}{% endblock %}
+        </div>
       </div>
-
-      {# Footer link sits below the card #} {% block auth_footer %}{% endblock
-      %}
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

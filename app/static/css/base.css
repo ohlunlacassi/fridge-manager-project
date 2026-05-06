@@ -9,32 +9,33 @@
 
 body {
   font-family: system-ui, sans-serif;
-  background: #fff;
-  color: #111;
+  background: #0e0e10;
+  color: #fff;
   min-height: 100vh;
 }
 
 a {
-  color: #111;
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
 }
 
 a:hover {
   text-decoration: underline;
+  color: #fff;
 }
 
-/* ── Navbar — white, borderless, blends into background ── */
+/* ── Navbar — dark, blends into canvas ── */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fff;
+  background: #0e0e10;
   padding: 1.25rem 2.5rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .navbar-brand {
-  color: #111;
+  color: #fff;
   font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -42,19 +43,19 @@ a:hover {
 
 .navbar-brand:hover {
   text-decoration: none;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
-/* Search bar — underline style like the wireframe */
+/* Search bar */
 .navbar-search {
   width: 220px;
   padding: 0.3rem 0.5rem;
   border: none;
-  border-bottom: 1.5px solid #111;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.3);
   border-radius: 0;
   font-size: 0.95rem;
   background: transparent;
-  color: #111;
+  color: #fff;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -62,11 +63,11 @@ a:hover {
 
 .navbar-search:focus {
   outline: none;
-  border-bottom-color: #555;
+  border-bottom-color: rgba(255, 255, 255, 0.7);
 }
 
 .navbar-search::placeholder {
-  color: #999;
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .navbar-links {
@@ -77,11 +78,11 @@ a:hover {
 }
 
 .navbar-links a {
-  color: #111;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .navbar-links span {
-  color: #555;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* ── Container ── */
@@ -91,22 +92,96 @@ a:hover {
   padding: 0 2rem;
 }
 
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+
+.btn:hover {
+  opacity: 0.88;
+}
+
+.btn-primary {
+  background: #7be495 !important;
+  color: #111 !important;
+  box-shadow: 0 4px 18px rgba(123, 228, 149, 0.25);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(123, 228, 149, 0.4);
+  opacity: 1;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  opacity: 1;
+}
+
 /* ── Flash messages ── */
 .alert {
   padding: 0.75rem 1rem;
-  border-radius: 6px;
+  border-radius: 10px;
   margin-bottom: 1rem;
   font-size: 0.9rem;
 }
 
 .alert-success {
-  background: #f0fdf4;
-  color: #166534;
-  border: 1px solid #bbf7d0;
+  background: rgba(123, 228, 149, 0.15);
+  color: #7be495;
+  border: 1px solid rgba(123, 228, 149, 0.3);
 }
 
 .alert-error {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ff6b6b;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* ── Form elements (used in modals) ── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.55rem 0.75rem;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #111;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #111;
 }
