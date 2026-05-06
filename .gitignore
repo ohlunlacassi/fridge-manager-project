@@ -7,5 +7,4 @@ uploads/
 .DS_Store
 .pytest_cache/
 *.db
-migrations/
 instance/
