@@ -1,3 +1,230 @@
+/* ── Google Fonts + dark theme ── */
+body {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  background: #0e0e10 !important;
+  color: #fff !important;
+}
+
+/* ── Navbar redesign ── */
+.navbar {
+  background: #0e0e10 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 1rem 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-brand {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logo-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #ffd23f;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.15);
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+}
+.logo-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.logo-dot {
+  color: #ffd23f;
+}
+.logo-tagline {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 2px;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navbar-search {
+  width: 180px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+.navbar-search::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+.navbar-search:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.navbar-bell {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.75);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.navbar-bell:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.navbar-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ff6b6b;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.navbar-logout {
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none !important;
+  transition: background 0.15s;
+}
+.navbar-logout:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Hero ── */
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 3rem 0 2rem;
+}
+
+.hero-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 1rem;
+}
+
+.hero-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7be495;
+  box-shadow: 0 0 10px #7be495;
+  flex-shrink: 0;
+}
+
+.hero-headline {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: #fff;
+}
+
+.hero-headline em {
+  font-family: "Instrument Serif", serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #ffd23f;
+}
+
+.use-first-stat {
+  background: #ffd23f;
+  color: #111;
+  padding: 1.25rem 1.5rem;
+  border-radius: 18px;
+  min-width: 170px;
+  transform: rotate(-1.5deg);
+  box-shadow: 0 12px 40px rgba(255, 210, 63, 0.3);
+}
+
+.use-first-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+.use-first-num {
+  font-family: "Instrument Serif", serif;
+  font-size: 4rem;
+  line-height: 1;
+  margin: 0.1rem 0;
+}
+.use-first-hint {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+/* ── Filter tabs — individual pills ── */
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.filter-tab {
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  padding: 0.4rem 1.1rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.filter-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.filter-tab.active {
+  background: #ffd23f;
+  color: #111;
+  border-color: #ffd23f;
+  font-weight: 700;
+}
+
 /* ── Toolbar ── */
 .toolbar {
   display: flex;
@@ -52,49 +279,11 @@
   background: #f0f0f0;
 }
 
-/* ── Filter tabs — single bordered pill ── */
-.filter-tabs {
-  display: flex;
-  gap: 0;
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  padding: 0.25rem 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  width: fit-content;
-}
-
-.filter-tab {
-  background: none;
-  border: none;
-  border-radius: 999px;
-  padding: 0.35rem 1.1rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.7);
-  transition:
-    background 0.15s,
-    color 0.15s;
-}
-
-.filter-tab:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-
-.filter-tab.active {
-  background: #ffd23f;
-  color: #111;
-  font-weight: 700;
-}
-
 /* ── Ingredient grid ── */
 .ingredient-grid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(220px, 1fr)
-  ); /* 180px → 220px */
-  gap: 1.25rem; /* 1rem → 1.25rem */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
 }
 
 /* ── Ingredient card ── */
@@ -105,14 +294,14 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.25);
   transition: box-shadow 0.15s ease;
   cursor: pointer;
 }
 
 /* ── Hover: white shadow only ── */
 .ingredient-card:hover {
-  box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.85);
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
 /* ── Colored freshness stripe at top ── */
@@ -184,13 +373,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #111;
+  color: #555;
 }
 
 .ingredient-placeholder svg {
   width: 80px;
   height: 80px;
-  stroke: #111;
+  stroke: #555;
 }
 
 /* ── Item name — centered below illustration ── */

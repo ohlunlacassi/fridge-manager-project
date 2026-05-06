@@ -113,8 +113,8 @@ a:hover {
 }
 
 .btn-primary {
-  background: #7be495;
-  color: #111;
+  background: #7be495 !important;
+  color: #fff !important;
   box-shadow: 0 4px 18px rgba(123, 228, 149, 0.25);
 }
 

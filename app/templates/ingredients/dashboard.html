@@ -1,5 +1,25 @@
 {% extends "base.html" %} {% block title %}My Ingredients — Fridge Manager{%
-endblock %} {% block content %} {# ── Category filter tabs ── #}
+endblock %} {% block content %} {% set use_first_count = ingredients |
+selectattr('expiry_status', 'in', ['warning', 'expired']) | list | length %} {#
+── Hero ── #}
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">
+      <span class="hero-dot"></span>
+      LIVE INVENTORY · {{ ingredients | length }} ITEMS
+    </div>
+    <h1 class="hero-headline">Fresh today, <em>finished</em><br />tomorrow.</h1>
+  </div>
+  <div class="hero-right">
+    <div class="use-first-stat">
+      <div class="use-first-label">USE FIRST</div>
+      <div class="use-first-num">{{ use_first_count }}</div>
+      <div class="use-first-hint">items expiring soon ↗</div>
+    </div>
+  </div>
+</section>
+
+{# ── Category filter tabs ── #}
 <div class="toolbar">
   <div class="filter-tabs">
     <button
@@ -47,7 +67,7 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
   </div>
 </div>
 
-{# ── Secondary toolbar: Use First (left) | Sort by + Add (right) ── #}
+{# ── Secondary toolbar ── #}
 <div class="toolbar-right">
   <a
     href="{{ url_for('main.index') if filter_mode == 'use-first' else url_for('main.index', filter='use-first') }}"
@@ -69,7 +89,6 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
     </svg>
     Use First
   </a>
-
   <div class="toolbar-right-actions">
     <button class="btn-icon" id="sort-btn">
       <svg
@@ -87,7 +106,6 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
       </svg>
       Sort by
     </button>
-
     <div class="sort-dropdown" id="sort-dropdown" style="display: none">
       <button class="sort-option active" data-sort="date-added-desc">
         Date added (newest first)
@@ -103,7 +121,6 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
       </button>
       <button class="sort-option" data-sort="name">Name (A–Z)</button>
     </div>
-
     <button class="btn btn-primary btn-sm" id="open-add-modal">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -133,11 +150,8 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
     data-id="{{ ingredient.id }}"
     data-expiry="{{ ingredient.expiry_date.isoformat() if ingredient.expiry_date else '' }}"
   >
-    {# ── Colored freshness stripe ── #}
     <div class="card-stripe"></div>
-
     <div class="card-inner">
-      {# ── Top: category badge + edit button ── #}
       <div class="ingredient-card-top">
         <span class="ingredient-category">{{ ingredient.category }}</span>
         <button
@@ -169,8 +183,6 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
           </svg>
         </button>
       </div>
-
-      {# ── Illustration / image ── #}
       <div class="ingredient-image-wrapper">
         {% if ingredient.image_filename %}
         <img
@@ -238,7 +250,7 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
             <path d="M5 8h14" />
             <path d="M16 8l1 3a4 4 0 0 1-4 4" />
           </svg>
-          {% elif ingredient.category == "Spices" %}
+          {% elif ingredient.category == "Condiments" %}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -248,9 +260,11 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <path d="M9 2h6v3H9z" />
-            <path d="M8 5h8l1 14a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L8 5z" />
-            <path d="M7 10h10" />
+            <path d="M10 2h4v3l1 2v1H9V7l1-2V2z" />
+            <path
+              d="M9 8c0 0-2 1-2 6v6a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-6c0-5-2-6-2-6"
+            />
+            <path d="M9 14h6" />
           </svg>
           {% else %}
           <svg
@@ -272,22 +286,14 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
         </div>
         {% endif %}
       </div>
-
-      {# ── Item name — centered below illustration ── #}
       <p class="ingredient-name">{{ ingredient.name }}</p>
-
-      {# ── Bottom: EXP + QTY ── #}
       <div class="ingredient-card-bottom">
         <div class="ingredient-expiry-block">
-          {% if ingredient.expiry_date %}
           <p class="ingredient-expiry-label">EXP</p>
           <p class="ingredient-expiry-date">
-            {{ ingredient.expiry_date.strftime('%d/%m/%Y') }}
+            {{ ingredient.expiry_date.strftime('%d/%m/%Y') if
+            ingredient.expiry_date else '—' }}
           </p>
-          {% else %}
-          <p class="ingredient-expiry-label">EXP</p>
-          <p class="ingredient-expiry-date">—</p>
-          {% endif %}
         </div>
         <div class="ingredient-quantity-block">
           <p class="ingredient-quantity-label">QTY</p>
@@ -303,11 +309,9 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
         </div>
       </div>
     </div>
-    {# /card-inner #}
   </div>
   {% endfor %}
 </div>
-
 {% else %}
 <div class="empty-state" id="ingredient-grid">
   {% if filter_mode == 'use-first' %}
@@ -316,9 +320,8 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
     href="{{ url_for('main.index') }}"
     class="btn btn-secondary"
     style="width: auto; padding: 0.6rem 2rem"
+    >View all ingredients</a
   >
-    View all ingredients
-  </a>
   {% else %}
   <p>Your inventory is empty.</p>
   <button
@@ -336,14 +339,14 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
   <p>No ingredients found.</p>
 </div>
 
-{# ── Add Ingredient Modal ── #}
+{# ── Add Modal ── #}
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <h2>Add Ingredient</h2>
     <form method="POST" action="{{ url_for('main.ingredient_add') }}">
       <div class="form-group">
-        <label for="name">Product Name</label>
-        <input type="text" id="name" name="name" required />
+        <label for="name">Product Name</label
+        ><input type="text" id="name" name="name" required />
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -382,8 +385,8 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
         </select>
       </div>
       <div class="form-group">
-        <label for="expiry_date">Expiry Date (optional)</label>
-        <input
+        <label for="expiry_date">Expiry Date (optional)</label
+        ><input
           type="date"
           id="expiry_date"
           name="expiry_date"
@@ -406,7 +409,7 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
   </div>
 </div>
 
-{# ── Edit Ingredient Modal ── #}
+{# ── Edit Modal ── #}
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
     <div class="modal-header">
@@ -417,8 +420,8 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
     </div>
     <form method="POST" id="edit-form">
       <div class="form-group">
-        <label for="edit-name">Name</label>
-        <input type="text" id="edit-name" name="name" required />
+        <label for="edit-name">Name</label
+        ><input type="text" id="edit-name" name="name" required />
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -454,12 +457,10 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
         </select>
       </div>
       <div class="form-group">
-        <label for="edit-expiry">
-          Expiry Date <span class="optional">(optional)</span>
-        </label>
-        <input type="date" id="edit-expiry" name="expiry_date" />
+        <label for="edit-expiry"
+          >Expiry Date <span class="optional">(optional)</span></label
+        ><input type="date" id="edit-expiry" name="expiry_date" />
       </div>
-
       <div class="form-group low-stock-toggle-group">
         <label class="toggle-label">
           <input type="checkbox" id="edit-is-low-stock" name="is_low_stock" />
@@ -467,7 +468,6 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
           Mark as low stock
         </label>
       </div>
-
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" id="edit-cancel-btn">
           Cancel
@@ -485,5 +485,4 @@ endblock %} {% block content %} {# ── Category filter tabs ── #}
 </div>
 
 <form id="delete-form" method="POST" style="display: none"></form>
-
 {% endblock %}
