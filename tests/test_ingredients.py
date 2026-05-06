@@ -406,7 +406,7 @@ def test_dashboard_shows_expiry_date(client, app):
             user_id=user.id,
             name="Yogurt",
             quantity=1.0,
-            unit="piece(s)",
+            unit="pcs",
             category="Dairy",
             expiry_date=datetime.date(2026, 12, 31),
         )
@@ -447,7 +447,7 @@ def make_ingredient_expiry(user_id: int, name: str, days_from_today: int | None)
         user_id=user_id,
         name=name,
         quantity=1.0,
-        unit="piece(s)",
+        unit="pcs",
         category="Other",
         expiry_date=expiry,
     )
@@ -596,7 +596,7 @@ def test_is_low_stock_defaults_to_false(client, app):
     client.post("/ingredient/add", data={
         "name": "Butter",
         "quantity": "1",
-        "unit": "piece(s)",
+        "unit": "pcs",
         "category": "Dairy",
     })
 

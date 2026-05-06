@@ -10,7 +10,7 @@ class Ingredient(db.Model):
     user_id: int = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     name: str = db.Column(db.String(100), nullable=False)
     quantity: float = db.Column(db.Float, nullable=False, default=0.0)
-    unit: str = db.Column(db.String(20), nullable=False, default="piece(s)")
+    unit: str = db.Column(db.String(20), nullable=False, default="pcs")
     expiry_date: datetime.date = db.Column(db.Date, nullable=True)
     category: str = db.Column(db.String(50), nullable=False, default="Other")
     image_filename: str = db.Column(db.String(255), nullable=True)
