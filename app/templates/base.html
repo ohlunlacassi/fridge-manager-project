@@ -22,7 +22,12 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/components.css') }}"
     />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/shopping.css') }}"
+    />
   </head>
+
   <body>
     <nav class="navbar">
       {# ── Logo ── #}
@@ -52,7 +57,55 @@
         </div>
       </a>
 
-      {# ── Right side ── #} {% if current_user.is_authenticated %}
+      {# ── Nav links ── #} {% if current_user.is_authenticated %}
+      <div class="navbar-links-center">
+        <a
+          href="{{ url_for('main.index') }}"
+          class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>
+          Dashboard
+        </a>
+        <a
+          href="{{ url_for('main.shopping_list') }}"
+          class="nav-link {% if request.endpoint == 'main.shopping_list' %}active{% endif %}"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path
+              d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
+            />
+          </svg>
+          Shopping
+        </a>
+      </div>
+      {% endif %} {# ── Right side ── #} {% if current_user.is_authenticated %}
       <div class="navbar-right">
         <div class="navbar-avatar" title="{{ current_user.full_name }}">
           {{ current_user.full_name[0].upper() if current_user.full_name else
