@@ -300,8 +300,11 @@ def logout():
 @login_required
 def shopping_list():
     if request.method == "POST":
+        print("FORM DATA:", request.form) 
         name = request.form.get("name", "").strip()
-        quantity = request.form.get("quantity", "").strip() or None
+        qty_amount = request.form.get("qty_amount", "").strip()
+        qty_unit = request.form.get("qty_unit", "").strip()
+        quantity = f"{qty_amount} {qty_unit}".strip() if qty_amount else None
         ingredient_id = request.form.get("ingredient_id", "").strip()
 
         if not name:

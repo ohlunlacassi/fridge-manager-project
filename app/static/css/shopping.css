@@ -314,6 +314,11 @@
   color: #555;
 }
 
+.sl-item-sep {
+  color: #ccc;
+  font-size: 0.8rem;
+}
+
 /* Delete */
 .sl-delete-btn {
   background: none;
