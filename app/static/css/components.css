@@ -31,28 +31,35 @@
 .btn-use-first {
   text-decoration: none;
   white-space: nowrap;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
 }
 
-/* Active state — filled black when filter is on */
+.btn-use-first:hover {
+  background: rgba(255, 255, 255, 0.14);
+  text-decoration: none;
+}
+
+/* Active state */
 .btn-use-first.active {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+  background: #fff;
+  color: #111;
+  border-color: #fff;
 }
 
 .btn-use-first.active:hover {
-  background: #333;
-  border-color: #333;
+  background: #f0f0f0;
 }
 
 /* ── Filter tabs — single bordered pill ── */
 .filter-tabs {
   display: flex;
   gap: 0;
-  border: 1.5px solid #111;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
   padding: 0.25rem 0.5rem;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.05);
   width: fit-content;
 }
 
@@ -63,101 +70,108 @@
   padding: 0.35rem 1.1rem;
   font-size: 0.95rem;
   cursor: pointer;
-  color: #111;
-  transition: background 0.15s;
+  color: rgba(255, 255, 255, 0.7);
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .filter-tab:hover {
-  background: #f4f4f4;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .filter-tab.active {
+  background: #ffd23f;
+  color: #111;
   font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 2px;
 }
 
 /* ── Ingredient grid ── */
 .ingredient-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(220px, 1fr)
+  ); /* 180px → 220px */
+  gap: 1.25rem; /* 1rem → 1.25rem */
 }
 
-/* ── Ingredient card — sharp corners, thin border ── */
+/* ── Ingredient card ── */
 .ingredient-card {
   background: #fff;
   border-radius: 4px;
-  border: 1.5px solid #111;
-  padding: 1rem;
+  border: none;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: box-shadow 0.15s ease;
   cursor: pointer;
 }
 
+/* ── Hover: white shadow only ── */
 .ingredient-card:hover {
-  box-shadow: 4px 4px 0 #111;
+  box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.85);
 }
 
-/* Expiry color — subtle top border accent */
-.ingredient-card.status-fresh {
-  border-top: 3px solid #22c55e;
-}
-.ingredient-card.status-warning {
-  border-top: 3px solid #f97316;
-}
-.ingredient-card.status-expired {
-  border-top: 3px solid #ef4444;
-}
-.ingredient-card.status-none {
-  border-top: 3px solid #22c55e;
+/* ── Colored freshness stripe at top ── */
+.card-stripe {
+  height: 5px;
+  width: 100%;
+  flex-shrink: 0;
 }
 
-/* ── Card top ── */
+.status-fresh .card-stripe {
+  background: #22c55e;
+}
+.status-warning .card-stripe {
+  background: #f97316;
+}
+.status-expired .card-stripe {
+  background: #ef4444;
+}
+.status-none .card-stripe {
+  background: #22c55e;
+}
+
+/* ── Inner padding wrapper ── */
+.card-inner {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* ── Card top: category (left) + edit btn (right) ── */
 .ingredient-card-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
 
-.ingredient-card-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.ingredient-name {
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: #111;
-  margin: 0;
-}
-
-/* Category badge — outlined style */
+/* Category badge — outlined pill on white card */
 .ingredient-category {
   display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: #111;
-  background: #fff;
-  border: 1px solid #111;
-  padding: 0.1rem 0.5rem;
+  background: transparent;
+  border: 1.5px solid rgba(0, 0, 0, 0.2);
+  padding: 0.18rem 0.55rem;
   border-radius: 999px;
   width: fit-content;
 }
 
-/* ── Product image area ── */
+/* ── Illustration area ── */
 .ingredient-image-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 140px;
-  background: #fff;
-  border-radius: 2px;
-  margin: 0.25rem 0;
+  margin: 8px 0 4px;
 }
 
 .ingredient-image-wrapper img {
@@ -170,37 +184,51 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #555;
+  color: #111;
 }
 
 .ingredient-placeholder svg {
-  width: 96px;
-  height: 96px;
+  width: 80px;
+  height: 80px;
+  stroke: #111;
 }
 
-/* ── Card bottom: expiry left, amount right ── */
+/* ── Item name — centered below illustration ── */
+.ingredient-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #111;
+  margin: 4px 0 12px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ── Card bottom: gray rounded section ── */
 .ingredient-card-bottom {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding-top: 0.5rem;
-  border-top: 1px solid #e5e5e5;
+  background: #f5f5f4;
+  border-radius: 12px;
+  padding: 9px 12px;
   margin-top: auto;
 }
 
 .ingredient-expiry-label,
 .ingredient-quantity-label {
-  font-size: 0.65rem;
-  text-transform: lowercase;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: #999;
   margin: 0;
 }
 
 .ingredient-expiry-date {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: #111;
-  margin: 0.1rem 0 0;
+  margin: 2px 0 0;
 }
 
 .ingredient-quantity-block {
@@ -208,9 +236,11 @@
 }
 
 .ingredient-quantity {
-  font-size: 0.9rem;
-  font-weight: 600;
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: #111;
+  margin-top: 2px;
 }
 
 /* US9 — amount turns red when low stock */
@@ -222,7 +252,7 @@
 .empty-state {
   text-align: center;
   padding: 5rem 1rem;
-  color: #555;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .empty-state p {
@@ -235,7 +265,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 100;
   align-items: center;
   justify-content: center;
@@ -248,11 +278,11 @@
 /* ── Modal box ── */
 .modal {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 2rem;
   width: 100%;
   max-width: 480px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
 }
 
 .modal h2 {
@@ -382,7 +412,7 @@
 
 /* ── Muted text ── */
 .muted {
-  color: #999;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* ── Optional label ── */
@@ -398,58 +428,65 @@
   border-radius: 999px;
 }
 
-/* Sort icon — circle button */
+/* ── Icon/text button (Sort by, Use first) ── */
 .btn-icon {
   border-radius: 999px;
-  border: 1.5px solid #111;
-  background: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
   display: flex;
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 1rem;
   cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s;
 }
 
 .btn-icon:hover {
-  background: #f4f4f4;
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .hidden {
   display: none;
 }
 
+/* ── Edit button (dark circle on card) ── */
 .btn-edit {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background-color: #000;
+  background-color: #111;
   color: #fff;
   border: none;
   cursor: pointer;
   padding: 0;
+  flex-shrink: 0;
+  transition: background 0.15s;
 }
 
 .btn-edit:hover {
   background-color: #333;
 }
 
+/* ── Sort dropdown ── */
 .sort-dropdown {
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
-  background: #fff;
-  border: 1.5px solid #e5e5e5;
+  background: #1a1a1f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   padding: 0.4rem;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
   z-index: 50;
-  min-width: 160px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  min-width: 200px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .sort-option {
@@ -460,17 +497,20 @@
   cursor: pointer;
   border-radius: 8px;
   font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .sort-option:hover {
-  background: #f5f5f5;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .sort-option.active {
   font-weight: 600;
+  color: #ffd23f;
 }
 
-/* ── Low stock toggle (US9) ── */
+/* ── Low stock toggle ── */
 .low-stock-toggle-group {
   margin-bottom: 0.75rem;
 }
