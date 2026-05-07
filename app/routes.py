@@ -5,7 +5,7 @@ from flask_login import login_required, logout_user, login_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db
-from app.models import User, Ingredient
+from app.models import User, Ingredient, ShoppingItem
 
 main = Blueprint("main", __name__)
 
@@ -132,7 +132,9 @@ def ingredient_edit(id: int):
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        quantity = request.form.get("quantity", "").strip()
+        qty_amount = request.form.get("qty_amount", "").strip()
+        qty_unit = request.form.get("qty_unit", "").strip()
+        quantity = f"{qty_amount} {qty_unit}".strip() if qty_amount else None
         unit = request.form.get("unit", "").strip()
         category = request.form.get("category", "").strip()
         expiry_date_str = request.form.get("expiry_date", "").strip()
@@ -291,3 +293,85 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("main.login"))
+
+# ── Shopping List Routes (US11, US12, US13) ──
+
+@main.route("/shopping-list", methods=["GET", "POST"])
+@login_required
+def shopping_list():
+    if request.method == "POST":
+        print("FORM DATA:", request.form) 
+        name = request.form.get("name", "").strip()
+        qty_amount = request.form.get("qty_amount", "").strip()
+        qty_unit = request.form.get("qty_unit", "").strip()
+        quantity = f"{qty_amount} {qty_unit}".strip() if qty_amount else None
+        ingredient_id = request.form.get("ingredient_id", "").strip()
+
+        if not name:
+            flash("Item name is required.", "error")
+            return redirect(url_for("main.shopping_list"))
+
+        if ingredient_id:
+            existing = ShoppingItem.query.filter_by(
+                user_id=current_user.id,
+                ingredient_id=int(ingredient_id),
+            ).first()
+            if existing:
+                return redirect(url_for("main.shopping_list"))
+
+        item = ShoppingItem(
+            user_id=current_user.id,
+            name=name,
+            quantity=quantity,
+            ingredient_id=int(ingredient_id) if ingredient_id else None,
+        )
+        db.session.add(item)
+        db.session.commit()
+        return redirect(url_for("main.shopping_list"))
+
+    # GET
+    items = ShoppingItem.query.filter_by(user_id=current_user.id).order_by(ShoppingItem.id.asc()).all()
+
+    on_list_ids = {item.ingredient_id for item in items if item.ingredient_id}
+    suggestions_query = Ingredient.query.filter_by(user_id=current_user.id, is_low_stock=True)
+    if on_list_ids:
+        suggestions_query = suggestions_query.filter(~Ingredient.id.in_(on_list_ids))
+    suggestions = suggestions_query.all()
+
+    today_str = datetime.date.today().strftime("%A %-d %B").upper()
+
+    return render_template(
+        "shopping_list.html",
+        items=items,
+        suggestions=suggestions,
+        today_str=today_str,
+        today_date=datetime.date.today(),
+    )
+
+@main.route("/shopping-list/toggle/<int:id>", methods=["POST"])
+@login_required
+def shopping_list_toggle(id: int):
+    item = db.session.get(ShoppingItem, id)
+    if item is None:
+        abort(404)
+    if item.user_id != current_user.id:
+        abort(403)
+
+    item.is_checked = not item.is_checked
+
+    if item.is_checked and item.ingredient_id:
+        ingredient = db.session.get(Ingredient, item.ingredient_id)
+        if ingredient:
+            ingredient.is_low_stock = False
+
+    db.session.commit()
+    return {"is_checked": item.is_checked}, 200
+
+
+@main.route("/shopping-list/clear", methods=["POST"])
+@login_required
+def shopping_list_clear():
+    ShoppingItem.query.filter_by(user_id=current_user.id, is_checked=True).delete()
+    db.session.commit()
+    flash("Completed items cleared.", "success")
+    return redirect(url_for("main.shopping_list"))

@@ -1,0 +1,471 @@
+/* ── Hero ── */
+.sl-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 2.5rem 0 2rem;
+  gap: 2rem;
+}
+
+.sl-hero-left {
+  flex: 1;
+}
+
+.sl-hero .hero-headline {
+  font-size: clamp(3rem, 6vw, 5.5rem);
+}
+
+.sl-hero-desc {
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.6;
+  max-width: 420px;
+  margin-top: 0.75rem;
+}
+
+/* ── Progress card ── */
+.sl-progress-card {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 1.5rem 2rem 1.75rem;
+  min-width: 300px;
+  max-width: 380px;
+  backdrop-filter: blur(20px);
+  position: relative;
+}
+
+.sl-progress-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 0.2rem;
+}
+
+.sl-progress-num {
+  font-family: "Instrument Serif", serif;
+  font-size: 4rem;
+  line-height: 1;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+
+.sl-progress-total {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.6rem;
+  opacity: 0.4;
+}
+
+.sl-progress-hint {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 1.25rem;
+}
+
+.sl-progress-pct {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: #7be495;
+  color: #111;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+}
+
+.sl-progress-bar-wrap {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.sl-progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: #7be495;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+
+/* ── Add form ── */
+.sl-add-form {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  align-items: center;
+}
+
+.sl-add-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.6rem 1.25rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  height: 44px;
+}
+
+.sl-add-input-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #111;
+  background: transparent;
+  text-align: left !important;
+}
+
+.sl-add-input-wrap input::placeholder {
+  color: #bbb;
+}
+
+.sl-add-btn {
+  white-space: nowrap;
+  padding: 0.85rem 1.75rem;
+  font-size: 0.9rem;
+  border-radius: 999px;
+  height: fit-content;
+}
+
+/* ── Filter toolbar ── */
+.sl-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+}
+
+.sl-filter-tabs {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.sl-tab {
+  padding: 0.38rem 1rem;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.sl-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.sl-tab.active {
+  background: #ffd23f;
+  color: #111;
+  border-color: #ffd23f;
+  font-weight: 700;
+}
+
+.sl-clear-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.sl-clear-btn:hover {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ── Two-column layout ── */
+.sl-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* ── List card ── */
+.sl-list-card {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.sl-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sl-list-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111;
+}
+.sl-list-hint {
+  font-size: 0.7rem;
+  color: #ccc;
+}
+
+/* ── Shopping item ── */
+.sl-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 1.5rem;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background 0.15s;
+}
+
+.sl-item:last-child {
+  border-bottom: none;
+}
+.sl-item:hover {
+  background: #fafafa;
+}
+.sl-item--done {
+  opacity: 0.45;
+}
+.sl-item--hidden {
+  display: none;
+}
+
+/* Checkbox */
+.sl-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+  color: #fff;
+}
+.sl-check:hover {
+  border-color: #7be495;
+}
+.sl-check--checked {
+  background: #7be495;
+  border-color: #7be495;
+}
+
+/* Item icon */
+.sl-item-icon {
+  width: 34px;
+  height: 34px;
+  background: #f5f5f4;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.sl-item-icon svg {
+  width: 17px;
+  height: 17px;
+  stroke: #888;
+}
+
+/* Item body */
+.sl-item-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.sl-item-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #111;
+}
+.sl-item--done .sl-item-name {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.sl-item-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1.5px solid rgba(0, 0, 0, 0.14);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  color: #555;
+}
+
+.sl-item-sep {
+  color: #ccc;
+  font-size: 0.8rem;
+}
+
+/* Delete */
+.sl-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ddd;
+  padding: 0.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+.sl-delete-btn:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+/* ── Sidebar ── */
+.sl-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Suggestions */
+.sl-suggestions-card {
+  background: #ffd23f;
+  border-radius: 18px;
+  padding: 1.1rem 1.1rem 1.25rem;
+}
+
+.sl-suggestions-label {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 0.25rem;
+}
+
+.sl-suggestions-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.sl-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 12px;
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 0.45rem;
+}
+.sl-suggestion-item:last-child {
+  margin-bottom: 0;
+}
+
+.sl-suggestion-icon {
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.sl-suggestion-icon svg {
+  width: 15px;
+  height: 15px;
+  stroke: #666;
+}
+
+.sl-suggestion-body {
+  flex: 1;
+  min-width: 0;
+}
+.sl-suggestion-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #111;
+}
+.sl-suggestion-meta {
+  font-size: 0.68rem;
+  color: rgba(0, 0, 0, 0.5);
+  margin-top: 1px;
+}
+
+.sl-suggestion-add {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #111;
+  border: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.sl-suggestion-add:hover {
+  background: #333;
+}
+
+.sl-item-qty {
+  font-size: 0.82rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.sl-qty-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-left: 1px solid #eee;
+  padding-left: 0.75rem;
+  flex-shrink: 0;
+}
+
+.sl-qty-num {
+  width: 55px;
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #111;
+  background: transparent;
+  -moz-appearance: textfield;
+}
+
+.sl-qty-num::-webkit-outer-spin-button,
+.sl-qty-num::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.sl-qty-unit {
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #666;
+  background: transparent;
+  cursor: pointer;
+}

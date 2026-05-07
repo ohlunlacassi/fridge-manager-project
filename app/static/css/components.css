@@ -53,6 +53,41 @@ body {
   margin-top: 2px;
 }
 
+.navbar-links-center {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: #fff;
+  color: #111;
+}
+
 .navbar-right {
   display: flex;
   align-items: center;
@@ -518,13 +553,9 @@ body {
   gap: 0.4rem;
 }
 
-.quantity-control input {
+.quantity-control input[type="number"] {
   text-align: center;
   width: 60px;
-}
-
-.quantity-control input[type="number"] {
-  -moz-appearance: textfield;
 }
 
 .quantity-control input[type="number"]::-webkit-outer-spin-button,
