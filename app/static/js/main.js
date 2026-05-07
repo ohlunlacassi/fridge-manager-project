@@ -289,3 +289,20 @@ document
       span.classList.add("amount-low");
     }
   });
+
+document.querySelectorAll(".sl-qty-ctrl").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const id = btn.dataset.id;
+    const action = btn.dataset.action;
+    fetch(`/shopping-list/quantity/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const valEl = document.getElementById(`sl-qty-${id}`);
+        if (valEl) valEl.textContent = data.quantity;
+      });
+  });
+});

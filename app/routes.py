@@ -322,7 +322,7 @@ def shopping_list():
         item = ShoppingItem(
             user_id=current_user.id,
             name=name,
-            quantity=quantity,
+            quantity=quantity if quantity else "1",
             ingredient_id=int(ingredient_id) if ingredient_id else None,
         )
         db.session.add(item)
@@ -347,6 +347,44 @@ def shopping_list():
         today_str=today_str,
         today_date=datetime.date.today(),
     )
+
+@main.route("/shopping-list/delete/<int:id>", methods=["POST"])
+@login_required
+def shopping_list_delete(id: int):
+    item = db.session.get(ShoppingItem, id)
+    if item is None:
+        abort(404)
+    if item.user_id != current_user.id:
+        abort(403)
+    db.session.delete(item)
+    db.session.commit()
+    return redirect(url_for("main.shopping_list"))
+
+@main.route("/shopping-list/quantity/<int:id>", methods=["POST"])
+@login_required
+def shopping_list_update_quantity(id: int):
+    item = db.session.get(ShoppingItem, id)
+    if item is None:
+        abort(404)
+    if item.user_id != current_user.id:
+        abort(403)
+
+    action = request.json.get("action")
+    if item.quantity:
+        parts = item.quantity.split(" ", 1)
+        try:
+            num = float(parts[0])
+            unit = parts[1] if len(parts) > 1 else ""
+            if action == "increase":
+                num += 1
+            elif action == "decrease" and num > 1:
+                num -= 1
+            num_display = int(num) if num == int(num) else num
+            item.quantity = f"{num_display} {unit}".strip()
+        except ValueError:
+            pass
+    db.session.commit()
+    return {"quantity": item.quantity}, 200
 
 @main.route("/shopping-list/toggle/<int:id>", methods=["POST"])
 @login_required
