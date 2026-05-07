@@ -232,14 +232,12 @@ checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
           ></form>
           <form
             method="POST"
-            action="{{ url_for('main.shopping_list_clear') }}"
+            action="{{ url_for('main.shopping_list_delete', id=item.id) }}"
             class="sl-item-delete-form"
           >
-            <input type="hidden" name="item_id" value="{{ item.id }}" />
             <button
-              type="button"
+              type="submit"
               class="sl-delete-btn"
-              data-id="{{ item.id }}"
               aria-label="Delete item"
             >
               <svg
@@ -345,4 +343,14 @@ checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
   </div>
 </div>
 
+{# ── Delete confirmation modal ── #}
+<div class="sl-confirm-overlay" id="sl-confirm-overlay">
+  <div class="sl-confirm-modal">
+    <p class="sl-confirm-msg">Remove this item from your list?</p>
+    <div class="sl-confirm-actions">
+      <button class="sl-confirm-cancel" id="sl-confirm-cancel">Cancel</button>
+      <button class="sl-confirm-ok" id="sl-confirm-ok">Remove</button>
+    </div>
+  </div>
+</div>
 {% endblock %}
