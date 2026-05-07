@@ -132,9 +132,7 @@ def ingredient_edit(id: int):
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        qty_amount = request.form.get("qty_amount", "").strip()
-        qty_unit = request.form.get("qty_unit", "").strip()
-        quantity = f"{qty_amount} {qty_unit}".strip() if qty_amount else None
+        quantity = request.form.get("quantity", "").strip()
         unit = request.form.get("unit", "").strip()
         category = request.form.get("category", "").strip()
         expiry_date_str = request.form.get("expiry_date", "").strip()
@@ -368,10 +366,32 @@ def shopping_list_toggle(id: int):
     return {"is_checked": item.is_checked}, 200
 
 
+@main.route("/shopping-list/delete/<int:id>", methods=["POST"])
+@login_required
+def shopping_list_delete(id: int):
+    item = db.session.get(ShoppingItem, id)
+    if item is None:
+        abort(404)
+    if item.user_id != current_user.id:
+        abort(403)
+    db.session.delete(item)
+    db.session.commit()
+    return redirect(url_for("main.shopping_list"))
+
 @main.route("/shopping-list/clear", methods=["POST"])
 @login_required
 def shopping_list_clear():
-    ShoppingItem.query.filter_by(user_id=current_user.id, is_checked=True).delete()
+    checked_items = ShoppingItem.query.filter_by(
+        user_id=current_user.id, is_checked=True
+    ).all()
+
+    for item in checked_items:
+        if item.ingredient_id:
+            ingredient = db.session.get(Ingredient, item.ingredient_id)
+            if ingredient:
+                ingredient.is_low_stock = False
+        db.session.delete(item)
+
     db.session.commit()
     flash("Completed items cleared.", "success")
     return redirect(url_for("main.shopping_list"))
