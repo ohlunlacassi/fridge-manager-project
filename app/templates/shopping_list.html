@@ -217,44 +217,56 @@ checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
           {# Name + category #}
           <div class="sl-item-body">
             <span class="sl-item-name">{{ item.name }}</span>
-            {% if item.quantity %}
-            <span class="sl-item-sep">·</span>
-            <span class="sl-item-qty">{{ item.quantity }}</span>
-            {% endif %}
           </div>
-
-          {# Delete #}
-          <form
-            method="POST"
-            action="{{ url_for('main.shopping_list_toggle', id=item.id) }}"
-            class="sl-delete-form"
-            style="display: none"
-          ></form>
-          <form
-            method="POST"
-            action="{{ url_for('main.shopping_list_delete', id=item.id) }}"
-            class="sl-item-delete-form"
-          >
-            <button
-              type="submit"
-              class="sl-delete-btn"
-              aria-label="Delete item"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+          <div class="sl-item-controls">
+            {% if item.quantity %}
+            <div class="sl-qty-controls">
+              <button
+                class="sl-qty-ctrl"
+                data-id="{{ item.id }}"
+                data-action="decrease"
               >
-                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-              </svg>
-            </button>
-          </form>
+                −
+              </button>
+              <span class="sl-qty-val" id="sl-qty-{{ item.id }}"
+                >{{ item.quantity }}</span
+              >
+              <button
+                class="sl-qty-ctrl"
+                data-id="{{ item.id }}"
+                data-action="increase"
+              >
+                +
+              </button>
+            </div>
+            {% endif %}
+
+            <form
+              method="POST"
+              action="{{ url_for('main.shopping_list_delete', id=item.id) }}"
+              class="sl-item-delete-form"
+            >
+              <button
+                type="submit"
+                class="sl-delete-btn"
+                aria-label="Delete item"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                </svg>
+              </button>
+            </form>
+          </div>
         </div>
         {% endfor %}
       </div>
