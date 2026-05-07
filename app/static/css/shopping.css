@@ -511,3 +511,62 @@
   background: transparent;
   cursor: pointer;
 }
+
+.sl-confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.sl-confirm-overlay.open {
+  display: flex;
+}
+
+.sl-confirm-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+}
+
+.sl-confirm-msg {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 1.5rem;
+}
+
+.sl-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.sl-confirm-cancel {
+  background: none;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 999px;
+  padding: 0.45rem 1.1rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  color: #555;
+}
+
+.sl-confirm-ok {
+  background: #e53e3e;
+  border: none;
+  border-radius: 999px;
+  padding: 0.45rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  color: #fff;
+}

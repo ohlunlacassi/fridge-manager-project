@@ -306,3 +306,104 @@ document.querySelectorAll(".sl-qty-ctrl").forEach((btn) => {
       });
   });
 });
+// ── Shopping list: toggle check via fetch ──
+document.querySelectorAll(".sl-check").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const id = btn.dataset.id;
+    fetch(`/shopping-list/toggle/${id}`, { method: "POST" })
+      .then((res) => res.json())
+      .then((data) => {
+        const item = btn.closest(".sl-item");
+        if (data.is_checked) {
+          btn.classList.add("sl-check--checked");
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+            stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+          item.classList.add("sl-item--done");
+          item.dataset.filter = "done";
+        } else {
+          btn.classList.remove("sl-check--checked");
+          btn.innerHTML = "";
+          item.classList.remove("sl-item--done");
+          item.dataset.filter = "tobuy";
+        }
+        updateShoppingProgress();
+      });
+  });
+});
+
+function updateShoppingProgress() {
+  const allItems = document.querySelectorAll(".sl-item");
+  const total = allItems.length;
+  const checked = document.querySelectorAll(".sl-item.sl-item--done").length;
+  const toBuy = total - checked;
+  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+
+  // update numbers
+  const numEl = document.querySelector(".sl-progress-num");
+  const totalEl = document.querySelector(".sl-progress-total");
+  const hintEl = document.querySelector(".sl-progress-hint");
+  const barEl = document.querySelector(".sl-progress-bar");
+  const pctEl = document.querySelector(".sl-progress-pct");
+
+  if (numEl) numEl.childNodes[0].textContent = checked;
+  if (totalEl) totalEl.textContent = `/${total}`;
+  if (hintEl)
+    hintEl.textContent = `${toBuy} item${toBuy !== 1 ? "s" : ""} to go ↗`;
+  if (barEl) barEl.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+
+  // update filter tabs
+  document.querySelectorAll(".sl-tab").forEach((tab) => {
+    if (tab.dataset.filter === "all") tab.textContent = `All · ${total}`;
+    if (tab.dataset.filter === "tobuy") tab.textContent = `To buy · ${toBuy}`;
+    if (tab.dataset.filter === "done") tab.textContent = `Done · ${checked}`;
+  });
+}
+
+// ── Shopping list: delete with custom modal ──
+let pendingDeleteForm = null;
+const slConfirmOverlay = document.getElementById("sl-confirm-overlay");
+const slConfirmOk = document.getElementById("sl-confirm-ok");
+const slConfirmCancel = document.getElementById("sl-confirm-cancel");
+
+document.querySelectorAll(".sl-item-delete-form").forEach((form) => {
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    pendingDeleteForm = form;
+    if (slConfirmOverlay) slConfirmOverlay.classList.add("open");
+  });
+});
+
+if (slConfirmOk) {
+  slConfirmOk.addEventListener("click", () => {
+    if (pendingDeleteForm) pendingDeleteForm.submit();
+    slConfirmOverlay.classList.remove("open");
+  });
+}
+
+if (slConfirmCancel) {
+  slConfirmCancel.addEventListener("click", () => {
+    pendingDeleteForm = null;
+    slConfirmOverlay.classList.remove("open");
+  });
+}
+
+// ── Shopping list: filter tabs ──
+const slTabs = document.querySelectorAll(".sl-tab");
+const slItems = document.querySelectorAll(".sl-item");
+
+slTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    slTabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    const filter = tab.dataset.filter;
+    slItems.forEach((item) => {
+      if (filter === "all" || item.dataset.filter === filter) {
+        item.classList.remove("sl-item--hidden");
+      } else {
+        item.classList.add("sl-item--hidden");
+      }
+    });
+  });
+});

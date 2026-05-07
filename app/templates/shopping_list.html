@@ -355,4 +355,14 @@ checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
   </div>
 </div>
 
+{# ── Delete confirmation modal ── #}
+<div class="sl-confirm-overlay" id="sl-confirm-overlay">
+  <div class="sl-confirm-modal">
+    <p class="sl-confirm-msg">Remove this item from your list?</p>
+    <div class="sl-confirm-actions">
+      <button class="sl-confirm-cancel" id="sl-confirm-cancel">Cancel</button>
+      <button class="sl-confirm-ok" id="sl-confirm-ok">Remove</button>
+    </div>
+  </div>
+</div>
 {% endblock %}
