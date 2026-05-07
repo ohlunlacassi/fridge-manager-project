@@ -403,19 +403,6 @@ def shopping_list_toggle(id: int):
     db.session.commit()
     return {"is_checked": item.is_checked}, 200
 
-
-@main.route("/shopping-list/delete/<int:id>", methods=["POST"])
-@login_required
-def shopping_list_delete(id: int):
-    item = db.session.get(ShoppingItem, id)
-    if item is None:
-        abort(404)
-    if item.user_id != current_user.id:
-        abort(403)
-    db.session.delete(item)
-    db.session.commit()
-    return redirect(url_for("main.shopping_list"))
-
 @main.route("/shopping-list/clear", methods=["POST"])
 @login_required
 def shopping_list_clear():
