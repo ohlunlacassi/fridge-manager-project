@@ -132,9 +132,7 @@ def ingredient_edit(id: int):
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        qty_amount = request.form.get("qty_amount", "").strip()
-        qty_unit = request.form.get("qty_unit", "").strip()
-        quantity = f"{qty_amount} {qty_unit}".strip() if qty_amount else None
+        quantity = request.form.get("quantity", "").strip()
         unit = request.form.get("unit", "").strip()
         category = request.form.get("category", "").strip()
         expiry_date_str = request.form.get("expiry_date", "").strip()
