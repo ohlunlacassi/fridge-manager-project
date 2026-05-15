@@ -1,8 +1,7 @@
-import pytest
+import datetime
 from werkzeug.security import generate_password_hash
 from app import db
-from app.models import User, Ingredient, ShoppingItem
-
+from app.models import User, Ingredient, ShoppingItem, Expense
 
 # ── Helpers ──
 
@@ -15,11 +14,10 @@ def make_user(full_name="Test User", email="test@example.com", password="passwor
     db.session.add(user)
     db.session.commit()
     return user
-
-
+ 
+ 
 def login(client, email="test@example.com", password="password123"):
     return client.post("/login", data={"email": email, "password": password})
-
 
 def make_shopping_item(user_id: int, name: str = "Milk",
                        quantity: str = None, ingredient_id: int = None,
@@ -49,6 +47,22 @@ def make_ingredient(user_id: int, name: str = "Milk",
     db.session.add(ing)
     db.session.commit()
     return ing
+ 
+ 
+def make_expense(user_id: int, amount: float, weeks_ago: int = 0) -> Expense:
+    """Create an expense for this week (or n weeks ago)."""
+    today = datetime.date.today() - datetime.timedelta(weeks=weeks_ago)
+    iso = today.isocalendar()
+    expense = Expense(
+        user_id=user_id,
+        amount=amount,
+        date=today,
+        week_number=iso.week,
+        year=iso.year,
+    )
+    db.session.add(expense)
+    db.session.commit()
+    return expense
 
 
 # ── Shopping List Page (US11) ──
@@ -298,3 +312,134 @@ def test_clear_does_not_affect_unchecked_items(client, app):
 
     with app.app_context():
         assert ShoppingItem.query.filter_by(name="Apples").first() is not None
+
+# ── Set Budget (US14) ──
+ 
+def test_set_budget_saves_to_user(client, app):
+    """Setting budget updates user.weekly_budget."""
+    with app.app_context():
+        make_user()
+    login(client)
+    client.post("/shopping-list/set-budget", data={"budget": "50.00"})
+    with app.app_context():
+        user = User.query.filter_by(email="test@example.com").first()
+        assert user.weekly_budget == 50.0
+ 
+ 
+def test_set_budget_updates_existing_budget(client, app):
+    """Setting a new budget overwrites the old one."""
+    with app.app_context():
+        user = make_user()
+        user.weekly_budget = 100.0
+        db.session.commit()
+    login(client)
+    client.post("/shopping-list/set-budget", data={"budget": "75.00"})
+    with app.app_context():
+        user = User.query.filter_by(email="test@example.com").first()
+        assert user.weekly_budget == 75.0
+ 
+ 
+def test_set_budget_invalid_negative(client, app):
+    """Negative budget shows error and does not save."""
+    with app.app_context():
+        make_user()
+    login(client)
+    response = client.post("/shopping-list/set-budget",
+                           data={"budget": "-10"},
+                           follow_redirects=True)
+    assert b"positive" in response.data
+    with app.app_context():
+        user = User.query.filter_by(email="test@example.com").first()
+        assert user.weekly_budget == 0.0
+ 
+ 
+def test_set_budget_invalid_zero(client, app):
+    """Zero budget shows error and does not save."""
+    with app.app_context():
+        make_user()
+    login(client)
+    response = client.post("/shopping-list/set-budget",
+                           data={"budget": "0"},
+                           follow_redirects=True)
+    assert b"positive" in response.data
+ 
+ 
+def test_set_budget_requires_login(client):
+    """Unauthenticated access redirects to login."""
+    response = client.post("/shopping-list/set-budget",
+                           data={"budget": "50"},
+                           follow_redirects=False)
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+ 
+ 
+# ── Clear Budget (US14) ──
+ 
+def test_clear_budget_resets_to_zero(client, app):
+    """Clear budget resets weekly_budget to 0.0."""
+    with app.app_context():
+        user = make_user()
+        user.weekly_budget = 100.0
+        db.session.commit()
+    login(client)
+    client.post("/shopping-list/clear-budget")
+    with app.app_context():
+        user = User.query.filter_by(email="test@example.com").first()
+        assert user.weekly_budget == 0.0
+ 
+ 
+def test_clear_budget_requires_login(client):
+    """Unauthenticated access redirects to login."""
+    response = client.post("/shopping-list/clear-budget", follow_redirects=False)
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+ 
+ 
+# ── Budget Overview on Shopping List Page (US14) ──
+ 
+def test_budget_displayed_on_shopping_list(client, app):
+    """Budget amount is shown on shopping list page."""
+    with app.app_context():
+        user = make_user()
+        user.weekly_budget = 80.0
+        db.session.commit()
+    login(client)
+    response = client.get("/shopping-list")
+    assert b"80.00" in response.data
+ 
+ 
+def test_total_spent_shows_current_week_only(client, app):
+    """Only expenses from the current ISO week are counted."""
+    with app.app_context():
+        user = make_user()
+        make_expense(user.id, amount=30.0, weeks_ago=0)   # this week
+        make_expense(user.id, amount=50.0, weeks_ago=1)   # last week
+    login(client)
+    response = client.get("/shopping-list")
+    assert b"30.00" in response.data
+    assert b"80.00" not in response.data
+ 
+ 
+def test_over_budget_warning_shown(client, app):
+    """Over-budget message is shown when expenses exceed budget."""
+    with app.app_context():
+        user = make_user()
+        user.weekly_budget = 10.0
+        db.session.commit()
+        make_expense(user.id, amount=25.50)
+    login(client)
+    response = client.get("/shopping-list")
+    assert b"Over budget" in response.data
+    assert b"15.50" in response.data
+ 
+ 
+def test_no_over_budget_when_under(client, app):
+    """Over-budget message is not shown when under budget."""
+    with app.app_context():
+        user = make_user()
+        user.weekly_budget = 100.0
+        db.session.commit()
+        make_expense(user.id, amount=25.0)
+    login(client)
+    response = client.get("/shopping-list")
+    assert b"Over budget" not in response.data

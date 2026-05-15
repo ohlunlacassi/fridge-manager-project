@@ -336,15 +336,29 @@ def shopping_list():
         suggestions_query = suggestions_query.filter(~Ingredient.id.in_(on_list_ids))
     suggestions = suggestions_query.all()
 
-    today_str = datetime.date.today().strftime("%A %-d %B").upper()
+    today = datetime.date.today()
+    today_str = today.strftime("%A %-d %B").upper()
+
+    # Budget calculation
+    iso = today.isocalendar()
+    week_number, year = iso.week, iso.year
+    from app.models import Expense
+    total_spent = db.session.query(db.func.sum(Expense.amount)).filter_by(
+        user_id=current_user.id,
+        week_number=week_number,
+        year=year,
+    ).scalar() or 0.0
 
     return render_template(
         "shopping_list.html",
         items=items,
         suggestions=suggestions,
         today_str=today_str,
-        today_date=datetime.date.today(),
+        today_date=today,
+        budget=current_user.weekly_budget or 0.0,
+        total_spent=total_spent,
     )
+
 
 @main.route("/shopping-list/delete/<int:id>", methods=["POST"])
 @login_required
@@ -392,12 +406,12 @@ def shopping_list_toggle(id: int):
         abort(404)
     if item.user_id != current_user.id:
         abort(403)
-
+        
     item.is_checked = not item.is_checked
 
     if item.is_checked and item.ingredient_id:
         ingredient = db.session.get(Ingredient, item.ingredient_id)
-        if ingredient:
+    if ingredient:
             ingredient.is_low_stock = False
 
     db.session.commit()
@@ -419,4 +433,28 @@ def shopping_list_clear():
 
     db.session.commit()
     flash("Completed items cleared.", "success")
+    return redirect(url_for("main.shopping_list"))
+
+@main.route("/shopping-list/set-budget", methods=["POST"])
+@login_required
+def set_budget():
+    amount_str = request.form.get("budget", "").strip()
+    try:
+        amount = float(amount_str)
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        flash("Budget must be a positive number.", "error")
+        return redirect(url_for("main.shopping_list"))
+
+    current_user.weekly_budget = amount
+    db.session.commit()
+    flash("Weekly budget updated.", "success")
+    return redirect(url_for("main.shopping_list"))
+
+@main.route("/shopping-list/clear-budget", methods=["POST"])
+@login_required
+def clear_budget():
+    current_user.weekly_budget = 0.0
+    db.session.commit()
     return redirect(url_for("main.shopping_list"))

@@ -1,8 +1,8 @@
 {% extends "base.html" %} {% block title %}Shopping List — Fridge Manager{%
 endblock %} {% block content %} {% set total = items | length %} {% set checked
-= items | selectattr('is_checked') | list | length %} {% set to_buy = total -
-checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
-{# ── Hero ── #}
+= items | selectattr('is_checked', 'equalto', true) | list | length %} {% set
+to_buy = total - checked %} {% set pct = ((checked / total * 100) | int) if
+total > 0 else 0 %} {# ── Hero ── #}
 <section class="sl-hero">
   <div class="sl-hero-left">
     <div class="hero-eyebrow">
@@ -95,11 +95,14 @@ checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
     <button class="sl-tab" data-filter="tobuy">To buy · {{ to_buy }}</button>
     <button class="sl-tab" data-filter="done">Done · {{ checked }}</button>
   </div>
-  {% if checked > 0 %}
   <form method="POST" action="{{ url_for('main.shopping_list_clear') }}">
-    <button type="submit" class="sl-clear-btn">Clear completed</button>
+    <button
+      type="submit"
+      class="sl-clear-btn{% if checked == 0 %} sl-clear-disabled{% endif %}"
+    >
+      Clear
+    </button>
   </form>
-  {% endif %}
 </div>
 
 {# ── Main layout: list + sidebar ── #}
@@ -112,7 +115,6 @@ checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
         <span class="sl-list-title">Your list</span>
         <span class="sl-list-hint">Tap circle to check off</span>
       </div>
-
       <div class="sl-items" id="sl-items">
         {% for item in items %}
         <div
@@ -214,10 +216,12 @@ checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
             {% endif %}
           </div>
 
-          {# Name + category #}
+          {# Name #}
           <div class="sl-item-body">
             <span class="sl-item-name">{{ item.name }}</span>
           </div>
+
+          {# Controls #}
           <div class="sl-item-controls">
             {% if item.quantity %}
             <div class="sl-qty-controls">
@@ -240,7 +244,6 @@ checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
               </button>
             </div>
             {% endif %}
-
             <form
               method="POST"
               action="{{ url_for('main.shopping_list_delete', id=item.id) }}"
@@ -283,7 +286,55 @@ checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
 
   {# ── Sidebar ── #}
   <div class="sl-sidebar">
-    {# Suggestions #} {% if suggestions %}
+    {# ── Budget ── #}
+    <div class="sl-budget-card">
+      <div
+        class="sl-list-header"
+        style="
+          padding: 0 0 0.75rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          margin-bottom: 0.75rem;
+        "
+      >
+        <span class="sl-budget-label" style="margin: 0">WEEKLY BUDGET</span>
+        <form method="POST" action="{{ url_for('main.clear_budget') }}">
+          <button type="submit" class="sl-clear-btn">Clear budget</button>
+        </form>
+      </div>
+      <div class="sl-budget-row">
+        <span
+          class="sl-budget-amount {% if total_spent > budget %}over-budget{% endif %}"
+        >
+          €{{ "%.2f"|format(budget) }}
+        </span>
+        <span class="sl-budget-spent"
+          >spent €{{ "%.2f"|format(total_spent) }}</span
+        >
+      </div>
+      {% if total_spent > budget %}
+      <p class="sl-budget-over">
+        Over budget by €{{ "%.2f"|format(total_spent - budget) }}
+      </p>
+      {% endif %}
+      <form
+        method="POST"
+        action="{{ url_for('main.set_budget') }}"
+        class="sl-budget-form"
+      >
+        <input
+          type="number"
+          name="budget"
+          step="0.01"
+          min="0.01"
+          placeholder="Set budget (€)"
+          value=""
+          class="sl-budget-input"
+        />
+        <button type="submit" class="sl-budget-btn">Save</button>
+      </form>
+    </div>
+
+    {# ── Suggestions ── #} {% if suggestions %}
     <div class="sl-suggestions-card">
       <div class="sl-suggestions-label">SUGGESTED FROM YOUR FRIDGE</div>
       <h3 class="sl-suggestions-title">Running low</h3>
