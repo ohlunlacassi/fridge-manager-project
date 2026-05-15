@@ -1,10 +1,12 @@
 import datetime
+import pytest
 from werkzeug.security import generate_password_hash
 from app import db
 from app.models import User, Ingredient, ShoppingItem, Expense
-
+ 
+ 
 # ── Helpers ──
-
+ 
 def make_user(full_name="Test User", email="test@example.com", password="password123") -> User:
     user = User(
         full_name=full_name,
@@ -18,7 +20,8 @@ def make_user(full_name="Test User", email="test@example.com", password="passwor
  
 def login(client, email="test@example.com", password="password123"):
     return client.post("/login", data={"email": email, "password": password})
-
+ 
+ 
 def make_shopping_item(user_id: int, name: str = "Milk",
                        quantity: str = None, ingredient_id: int = None,
                        is_checked: bool = False) -> ShoppingItem:
@@ -32,7 +35,6 @@ def make_shopping_item(user_id: int, name: str = "Milk",
     db.session.add(item)
     db.session.commit()
     return item
-
 
 def make_ingredient(user_id: int, name: str = "Milk",
                     is_low_stock: bool = False) -> Ingredient:
@@ -443,3 +445,187 @@ def test_no_over_budget_when_under(client, app):
     login(client)
     response = client.get("/shopping-list")
     assert b"Over budget" not in response.data
+
+    # ── US16: Record Purchase Expense ──
+ 
+def test_toggle_with_price_creates_expense(client, app):
+    """Checking off an item with a price creates an Expense record."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Milk")
+        item_id = item.id
+ 
+    login(client)
+    client.post(
+        f"/shopping-list/toggle/{item_id}",
+        json={"price": "3.99"},
+        content_type="application/json",
+    )
+ 
+    with app.app_context():
+        expense = Expense.query.filter_by(user_id=1).first()
+        assert expense is not None
+        assert expense.amount == 3.99
+ 
+ 
+def test_toggle_with_price_saves_to_item(client, app):
+    """Checking off an item with a price saves price to ShoppingItem.price."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Bread")
+        item_id = item.id
+ 
+    login(client)
+    client.post(
+        f"/shopping-list/toggle/{item_id}",
+        json={"price": "2.50"},
+        content_type="application/json",
+    )
+ 
+    with app.app_context():
+        updated = db.session.get(ShoppingItem, item_id)
+        assert updated.price == 2.50
+ 
+ 
+def test_toggle_without_price_creates_no_expense(client, app):
+    """Checking off an item without price creates no Expense."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Salt")
+        item_id = item.id
+ 
+    login(client)
+    client.post(
+        f"/shopping-list/toggle/{item_id}",
+        json={"price": ""},
+        content_type="application/json",
+    )
+ 
+    with app.app_context():
+        assert Expense.query.count() == 0
+ 
+ 
+def test_toggle_with_zero_price_creates_no_expense(client, app):
+    """Checking off with price 0 creates no Expense."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Salt")
+        item_id = item.id
+ 
+    login(client)
+    client.post(
+        f"/shopping-list/toggle/{item_id}",
+        json={"price": "0"},
+        content_type="application/json",
+    )
+ 
+    with app.app_context():
+        assert Expense.query.count() == 0
+ 
+ 
+def test_expense_linked_to_current_week(client, app):
+    """Expense is recorded with correct ISO week and year."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Eggs")
+        item_id = item.id
+ 
+    login(client)
+    client.post(
+        f"/shopping-list/toggle/{item_id}",
+        json={"price": "5.00"},
+        content_type="application/json",
+    )
+ 
+    today = datetime.date.today()
+    iso = today.isocalendar()
+ 
+    with app.app_context():
+        expense = Expense.query.filter_by(user_id=1).first()
+        assert expense.week_number == iso.week
+        assert expense.year == iso.year
+        assert expense.date == today
+ 
+ 
+def test_uncheck_resets_item_price(client, app):
+    """Unchecking an item resets its price to None."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Butter", is_checked=True)
+        item.price = 3.50
+        db.session.commit()
+        item_id = item.id
+ 
+    login(client)
+    client.post(
+        f"/shopping-list/toggle/{item_id}",
+        json={},
+        content_type="application/json",
+    )
+ 
+    with app.app_context():
+        updated = db.session.get(ShoppingItem, item_id)
+        assert updated.price is None
+ 
+ 
+def test_toggle_returns_total_spent(client, app):
+    """Toggle response includes updated total_spent for current week."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Coffee")
+        item_id = item.id
+ 
+    login(client)
+    response = client.post(
+        f"/shopping-list/toggle/{item_id}",
+        json={"price": "4.50"},
+        content_type="application/json",
+    )
+ 
+    data = response.get_json()
+    assert "total_spent" in data
+    assert data["total_spent"] == 4.50
+ 
+ 
+def test_multiple_expenses_sum_correctly(client, app):
+    """Total spent sums all expenses for the current week."""
+    with app.app_context():
+        user = make_user()
+        item1 = make_shopping_item(user.id, name="Milk")
+        item2 = make_shopping_item(user.id, name="Bread")
+        id1, id2 = item1.id, item2.id
+ 
+    login(client)
+    client.post(f"/shopping-list/toggle/{id1}", json={"price": "2.00"}, content_type="application/json")
+    response = client.post(f"/shopping-list/toggle/{id2}", json={"price": "3.00"}, content_type="application/json")
+ 
+    data = response.get_json()
+    assert data["total_spent"] == 5.00
+ 
+ 
+def test_expense_user_isolated(client, app):
+    """Expenses are user-specific — other users' expenses not counted."""
+    with app.app_context():
+        user_a = make_user(email="a@example.com")
+        user_b = make_user(full_name="User B", email="b@example.com")
+ 
+        item_a = make_shopping_item(user_a.id, name="Tea")
+        item_b = make_shopping_item(user_b.id, name="Coffee")
+        id_a, id_b = item_a.id, item_b.id
+ 
+    # User A buys tea for €5
+    login(client, email="a@example.com")
+    client.post(f"/shopping-list/toggle/{id_a}", json={"price": "5.00"}, content_type="application/json")
+ 
+    # User B buys coffee for €3 — should not affect A's total
+    client.post("/logout")
+    login(client, email="b@example.com")
+    client.post(f"/shopping-list/toggle/{id_b}", json={"price": "3.00"}, content_type="application/json")
+ 
+    # Check user A's page shows only €5
+    client.post("/logout")
+    login(client, email="a@example.com")
+    response = client.get("/shopping-list")
+    assert b"5.00" in response.data
+    assert b"8.00" not in response.data
+ 
