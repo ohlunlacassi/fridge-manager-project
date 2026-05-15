@@ -1,8 +1,8 @@
 {% extends "base.html" %} {% block title %}Shopping List — Fridge Manager{%
 endblock %} {% block content %} {% set total = items | length %} {% set checked
-= items | selectattr('is_checked') | list | length %} {% set to_buy = total -
-checked %} {% set pct = ((checked / total * 100) | int) if total > 0 else 0 %}
-{# ── Hero ── #}
+= items | selectattr('is_checked', 'equalto', true) | list | length %} {% set
+to_buy = total - checked %} {% set pct = ((checked / total * 100) | int) if
+total > 0 else 0 %} {# ── Hero ── #}
 <section class="sl-hero">
   <div class="sl-hero-left">
     <div class="hero-eyebrow">

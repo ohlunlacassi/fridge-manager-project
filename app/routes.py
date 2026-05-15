@@ -406,12 +406,12 @@ def shopping_list_toggle(id: int):
         abort(404)
     if item.user_id != current_user.id:
         abort(403)
-
+        
     item.is_checked = not item.is_checked
 
     if item.is_checked and item.ingredient_id:
         ingredient = db.session.get(Ingredient, item.ingredient_id)
-        if ingredient:
+    if ingredient:
             ingredient.is_low_stock = False
 
     db.session.commit()

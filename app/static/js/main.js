@@ -339,7 +339,6 @@ function updateShoppingProgress() {
   const toBuy = total - checked;
   const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
 
-  // update numbers
   const numEl = document.querySelector(".sl-progress-num");
   const totalEl = document.querySelector(".sl-progress-total");
   const hintEl = document.querySelector(".sl-progress-hint");
@@ -353,12 +352,20 @@ function updateShoppingProgress() {
   if (barEl) barEl.style.width = `${pct}%`;
   if (pctEl) pctEl.textContent = `${pct}%`;
 
-  // update filter tabs
   document.querySelectorAll(".sl-tab").forEach((tab) => {
     if (tab.dataset.filter === "all") tab.textContent = `All · ${total}`;
     if (tab.dataset.filter === "tobuy") tab.textContent = `To buy · ${toBuy}`;
     if (tab.dataset.filter === "done") tab.textContent = `Done · ${checked}`;
   });
+
+  const clearBtn = document.querySelector(".sl-clear-btn");
+  if (clearBtn) {
+    if (checked > 0) {
+      clearBtn.classList.remove("sl-clear-disabled");
+    } else {
+      clearBtn.classList.add("sl-clear-disabled");
+    }
+  }
 }
 
 // ── Shopping list: delete with custom modal ──
