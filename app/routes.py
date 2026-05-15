@@ -5,7 +5,7 @@ from flask_login import login_required, logout_user, login_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db
-from app.models import User, Ingredient, ShoppingItem
+from app.models import User, Ingredient, ShoppingItem, Expense
 
 main = Blueprint("main", __name__)
 
@@ -19,6 +19,17 @@ def get_dates() -> dict:
     today = datetime.date.today()
     max_date = today.replace(year=today.year + 10)
     return {"today": today.isoformat(), "max_date": max_date.isoformat()}
+
+
+def get_total_spent() -> float:
+    today = datetime.date.today()
+    iso = today.isocalendar()
+    total = db.session.query(db.func.sum(Expense.amount)).filter_by(
+        user_id=current_user.id,
+        week_number=iso.week,
+        year=iso.year,
+    ).scalar() or 0.0
+    return total
 
 
 @main.route("/")
@@ -179,7 +190,7 @@ def ingredient_edit(id: int):
         ingredient.unit = unit
         ingredient.category = category
         ingredient.expiry_date = expiry_date
-        ingredient.is_low_stock = request.form.get("is_low_stock") == "on" 
+        ingredient.is_low_stock = request.form.get("is_low_stock") == "on"
         db.session.commit()
 
         flash(f'"{name}" has been updated.', "success")
@@ -208,8 +219,6 @@ def ingredient_update_quantity(id: int):
         ingredient.quantity = max(0, ingredient.quantity - step)
 
     db.session.commit()
-
-    # Return is_low_stock so JS can update the card color immediately.
     return {'quantity': ingredient.quantity, 'is_low_stock': ingredient.is_low_stock}
 
 
@@ -292,13 +301,13 @@ def logout():
     logout_user()
     return redirect(url_for("main.login"))
 
-# ── Shopping List Routes (US11, US12, US13) ──
+
+# ── Shopping List Routes (US11, US12, US14, US16) ──
 
 @main.route("/shopping-list", methods=["GET", "POST"])
 @login_required
 def shopping_list():
     if request.method == "POST":
-        print("FORM DATA:", request.form) 
         name = request.form.get("name", "").strip()
         qty_amount = request.form.get("qty_amount", "").strip()
         qty_unit = request.form.get("qty_unit", "").strip()
@@ -339,16 +348,6 @@ def shopping_list():
     today = datetime.date.today()
     today_str = today.strftime("%A %-d %B").upper()
 
-    # Budget calculation
-    iso = today.isocalendar()
-    week_number, year = iso.week, iso.year
-    from app.models import Expense
-    total_spent = db.session.query(db.func.sum(Expense.amount)).filter_by(
-        user_id=current_user.id,
-        week_number=week_number,
-        year=year,
-    ).scalar() or 0.0
-
     return render_template(
         "shopping_list.html",
         items=items,
@@ -356,8 +355,51 @@ def shopping_list():
         today_str=today_str,
         today_date=today,
         budget=current_user.weekly_budget or 0.0,
-        total_spent=total_spent,
+        total_spent=get_total_spent(),
     )
+
+
+@main.route("/shopping-list/toggle/<int:id>", methods=["POST"])
+@login_required
+def shopping_list_toggle(id: int):
+    item = db.session.get(ShoppingItem, id)
+    if item is None:
+        abort(404)
+    if item.user_id != current_user.id:
+        abort(403)
+
+    item.is_checked = not item.is_checked
+
+    if item.is_checked:
+        # Reset is_low_stock on linked ingredient
+        if item.ingredient_id:
+            ingredient = db.session.get(Ingredient, item.ingredient_id)
+            if ingredient:
+                ingredient.is_low_stock = False
+
+        # Record expense if price provided
+        data = request.get_json(silent=True) or {}
+        price_str = str(data.get("price", "")).strip()
+        if price_str:
+            try:
+                amount = float(price_str)
+                if amount > 0:
+                    item.price = amount
+                    expense = Expense(
+                        user_id=current_user.id,
+                        amount=amount,
+                        date=datetime.date.today(),
+                        week_number=datetime.date.today().isocalendar().week,
+                        year=datetime.date.today().isocalendar().year,
+                    )
+                    db.session.add(expense)
+            except ValueError:
+                pass
+    else:
+        item.price = None  # reset ตอน uncheck
+
+    db.session.commit()
+    return {"is_checked": item.is_checked, "total_spent": get_total_spent()}, 200
 
 
 @main.route("/shopping-list/delete/<int:id>", methods=["POST"])
@@ -371,6 +413,7 @@ def shopping_list_delete(id: int):
     db.session.delete(item)
     db.session.commit()
     return redirect(url_for("main.shopping_list"))
+
 
 @main.route("/shopping-list/quantity/<int:id>", methods=["POST"])
 @login_required
@@ -398,24 +441,6 @@ def shopping_list_update_quantity(id: int):
     db.session.commit()
     return {"quantity": item.quantity}, 200
 
-@main.route("/shopping-list/toggle/<int:id>", methods=["POST"])
-@login_required
-def shopping_list_toggle(id: int):
-    item = db.session.get(ShoppingItem, id)
-    if item is None:
-        abort(404)
-    if item.user_id != current_user.id:
-        abort(403)
-        
-    item.is_checked = not item.is_checked
-
-    if item.is_checked and item.ingredient_id:
-        ingredient = db.session.get(Ingredient, item.ingredient_id)
-    if ingredient:
-            ingredient.is_low_stock = False
-
-    db.session.commit()
-    return {"is_checked": item.is_checked}, 200
 
 @main.route("/shopping-list/clear", methods=["POST"])
 @login_required
@@ -435,6 +460,7 @@ def shopping_list_clear():
     flash("Completed items cleared.", "success")
     return redirect(url_for("main.shopping_list"))
 
+
 @main.route("/shopping-list/set-budget", methods=["POST"])
 @login_required
 def set_budget():
@@ -451,6 +477,7 @@ def set_budget():
     db.session.commit()
     flash("Weekly budget updated.", "success")
     return redirect(url_for("main.shopping_list"))
+
 
 @main.route("/shopping-list/clear-budget", methods=["POST"])
 @login_required

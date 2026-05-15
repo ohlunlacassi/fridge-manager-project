@@ -306,32 +306,101 @@ document.querySelectorAll(".sl-qty-ctrl").forEach((btn) => {
       });
   });
 });
-// ── Shopping list: toggle check via fetch ──
+
+// ── Shopping list: toggle check with price modal ──
+let pendingToggleBtn = null;
+const slPriceOverlay = document.getElementById("sl-price-overlay");
+const slPriceField = document.getElementById("sl-price-field");
+const slPriceSave = document.getElementById("sl-price-save");
+const slPriceSkip = document.getElementById("sl-price-skip");
+
+function doToggle(btn, price = "") {
+  const id = btn.dataset.id;
+  fetch(`/shopping-list/toggle/${id}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ price }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      const spentEl = document.querySelector(".sl-budget-spent");
+      if (spentEl && data.total_spent !== undefined) {
+        spentEl.textContent = `spent €${data.total_spent.toFixed(2)}`;
+      }
+
+      const item = btn.closest(".sl-item");
+      const priceEl = item.querySelector(".sl-item-price");
+
+      if (data.is_checked) {
+        btn.classList.add("sl-check--checked");
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+          stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+        item.classList.add("sl-item--done");
+        item.dataset.filter = "done";
+
+        if (price && parseFloat(price) > 0) {
+          const nameEl = item.querySelector(".sl-item-name");
+          if (!priceEl) {
+            const span = document.createElement("span");
+            span.className = "sl-item-price";
+            span.textContent = `€${parseFloat(price).toFixed(2)}`;
+            nameEl.after(span);
+          } else {
+            priceEl.textContent = `€${parseFloat(price).toFixed(2)}`;
+          }
+        }
+      } else {
+        btn.classList.remove("sl-check--checked");
+        btn.innerHTML = "";
+        item.classList.remove("sl-item--done");
+        item.dataset.filter = "tobuy";
+
+        if (priceEl) priceEl.remove();
+      }
+      updateShoppingProgress();
+    });
+}
+
 document.querySelectorAll(".sl-check").forEach((btn) => {
   btn.addEventListener("click", () => {
-    const id = btn.dataset.id;
-    fetch(`/shopping-list/toggle/${id}`, { method: "POST" })
-      .then((res) => res.json())
-      .then((data) => {
-        const item = btn.closest(".sl-item");
-        if (data.is_checked) {
-          btn.classList.add("sl-check--checked");
-          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-            stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
-          item.classList.add("sl-item--done");
-          item.dataset.filter = "done";
-        } else {
-          btn.classList.remove("sl-check--checked");
-          btn.innerHTML = "";
-          item.classList.remove("sl-item--done");
-          item.dataset.filter = "tobuy";
-        }
-        updateShoppingProgress();
-      });
+    const item = btn.closest(".sl-item");
+    const isChecked = item.classList.contains("sl-item--done");
+
+    if (isChecked) {
+      // uncheck — no price modal needed
+      doToggle(btn);
+    } else {
+      // check — show price modal
+      pendingToggleBtn = btn;
+      if (slPriceField) slPriceField.value = "";
+      const itemName = btn
+        .closest(".sl-item")
+        .querySelector(".sl-item-name").textContent;
+      const msgEl = document.getElementById("sl-price-msg");
+      if (msgEl)
+        msgEl.textContent = `How much did you pay for ${itemName}? (optional)`;
+      if (slPriceOverlay) slPriceOverlay.classList.add("open");
+      setTimeout(() => slPriceField && slPriceField.focus(), 100);
+    }
   });
 });
 
+if (slPriceSave) {
+  slPriceSave.addEventListener("click", () => {
+    const price = slPriceField ? slPriceField.value : "";
+    slPriceOverlay.classList.remove("open");
+    if (pendingToggleBtn) doToggle(pendingToggleBtn, price);
+    pendingToggleBtn = null;
+  });
+}
+
+// Allow Enter key to submit price
+if (slPriceField) {
+  slPriceField.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") slPriceSave && slPriceSave.click();
+  });
+}
 function updateShoppingProgress() {
   const allItems = document.querySelectorAll(".sl-item");
   const total = allItems.length;
