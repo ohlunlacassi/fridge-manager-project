@@ -31,6 +31,21 @@ inputs.forEach((input) => {
   });
 });
 
+// ── Avatar dropdown ──
+const avatarBtn = document.getElementById("avatarBtn");
+const avatarDropdown = document.getElementById("avatarDropdown");
+
+if (avatarBtn && avatarDropdown) {
+  avatarBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    avatarDropdown.classList.toggle("open");
+  });
+
+  document.addEventListener("click", () => {
+    avatarDropdown.classList.remove("open");
+  });
+}
+
 // ── Add Ingredient Modal ──
 const modalOverlay = document.getElementById("modal-overlay");
 const openBtn = document.getElementById("open-add-modal");
@@ -604,5 +619,12 @@ slTabs.forEach((tab) => {
         item.classList.add("sl-item--hidden");
       }
     });
+  });
+});
+
+// ── Week card collapse/expand ──
+document.querySelectorAll('[data-toggle="week"]').forEach((header) => {
+  header.addEventListener("click", () => {
+    header.closest(".week-card").classList.toggle("collapsed");
   });
 });

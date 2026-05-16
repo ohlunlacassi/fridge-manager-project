@@ -26,6 +26,7 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/shopping.css') }}"
     />
+    {% block extra_css %}{% endblock %}
   </head>
 
   <body>
@@ -107,11 +108,25 @@
       </div>
       {% endif %} {# ── Right side ── #} {% if current_user.is_authenticated %}
       <div class="navbar-right">
-        <div class="navbar-avatar" title="{{ current_user.full_name }}">
-          {{ current_user.full_name[0].upper() if current_user.full_name else
-          'U' }}
+        <div class="avatar-dropdown-wrapper">
+          <button
+            class="navbar-avatar"
+            id="avatarBtn"
+            title="{{ current_user.full_name }}"
+          >
+            {{ current_user.full_name[0].upper() if current_user.full_name else
+            'U' }}
+          </button>
+          <div class="avatar-dropdown" id="avatarDropdown">
+            <div class="avatar-dropdown-name">{{ current_user.full_name }}</div>
+            <a
+              href="{{ url_for('main.expense_history') }}"
+              class="avatar-dropdown-item"
+            >
+              Expense History
+            </a>
+          </div>
         </div>
-
         <a href="{{ url_for('main.logout') }}" class="navbar-logout">Logout</a>
       </div>
       {% else %}
