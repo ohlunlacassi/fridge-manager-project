@@ -313,6 +313,7 @@
 .sl-check--checked {
   background: #7be495;
   border-color: #7be495;
+  cursor: default;
 }
 
 /* Item icon */
@@ -365,6 +366,12 @@
 .sl-item-sep {
   color: #ccc;
   font-size: 0.8rem;
+}
+
+.sl-item-price {
+  font-size: 0.78rem;
+  color: #7be495;
+  font-weight: 600;
 }
 
 /* Delete */
@@ -659,4 +666,26 @@
   font-family: inherit;
   cursor: pointer;
   color: #fff;
+}
+
+.sl-price-modal-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #111;
+  margin-top: 0.5rem;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.sl-price-modal-input:focus {
+  border-color: #7be495;
+}
+
+.sl-price-modal-input::-webkit-outer-spin-button,
+.sl-price-modal-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
 }

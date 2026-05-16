@@ -219,6 +219,9 @@ total > 0 else 0 %} {# ── Hero ── #}
           {# Name #}
           <div class="sl-item-body">
             <span class="sl-item-name">{{ item.name }}</span>
+            {% if item.price %}
+            <span class="sl-item-price">€{{ "%.2f"|format(item.price) }}</span>
+            {% endif %}
           </div>
 
           {# Controls #}
@@ -413,6 +416,52 @@ total > 0 else 0 %} {# ── Hero ── #}
     <div class="sl-confirm-actions">
       <button class="sl-confirm-cancel" id="sl-confirm-cancel">Cancel</button>
       <button class="sl-confirm-ok" id="sl-confirm-ok">Remove</button>
+    </div>
+  </div>
+</div>
+
+{# ── Price modal ── #}
+<div class="sl-confirm-overlay" id="sl-price-overlay">
+  <div class="sl-confirm-modal">
+    <p class="sl-confirm-msg" id="sl-price-msg">How much did you pay?</p>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        border: 1.5px solid #e5e5e5;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+      "
+    >
+      <span
+        style="
+          padding: 0.5rem 0.75rem;
+          color: #999;
+          font-size: 1rem;
+          border-right: 1.5px solid #e5e5e5;
+        "
+        >€</span
+      >
+      <input
+        type="number"
+        id="sl-price-field"
+        placeholder="0.00"
+        min="0.01"
+        step="0.01"
+        class="sl-price-modal-input"
+        style="margin-top: 0; border: none; border-radius: 0"
+      />
+    </div>
+    <div class="sl-confirm-actions" style="margin-top: 1rem">
+      <button class="sl-confirm-cancel" id="sl-price-cancel">Cancel</button>
+      <button
+        class="sl-confirm-ok"
+        id="sl-price-save"
+        style="background: #7be495; color: #111"
+      >
+        Save & check off
+      </button>
     </div>
   </div>
 </div>

@@ -11,6 +11,7 @@ class ShoppingItem(db.Model):
         db.Integer, db.ForeignKey("ingredients.id"), nullable=True
     )
     quantity: str = db.Column(db.String(50), nullable=True)
+    price: float = db.Column(db.Float, nullable=True)
 
     user = db.relationship("User", back_populates="shopping_items")
     ingredient = db.relationship("Ingredient", back_populates="shopping_items")
