@@ -83,13 +83,32 @@
 /* ── Week card header ── */
 .week-card-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem 1.5rem;
+  gap: 1rem;
   border-bottom: 1.5px solid #f0f0f0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.week-chevron {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-left: 0.25rem;
+  transition: transform 0.2s ease;
+}
+
+.week-card.collapsed .week-chevron {
+  transform: rotate(-90deg);
+}
+
+.week-card.collapsed .expense-list {
+  display: none;
 }
 
 .week-label {
+  flex: 1;
   display: flex;
   align-items: baseline;
   gap: 0.35rem;

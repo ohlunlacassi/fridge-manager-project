@@ -621,3 +621,10 @@ slTabs.forEach((tab) => {
     });
   });
 });
+
+// ── Week card collapse/expand ──
+document.querySelectorAll('[data-toggle="week"]').forEach((header) => {
+  header.addEventListener("click", () => {
+    header.closest(".week-card").classList.toggle("collapsed");
+  });
+});

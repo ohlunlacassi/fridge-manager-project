@@ -544,9 +544,9 @@ def clear_budget():
     db.session.commit()
     return redirect(url_for("main.shopping_list"))
 
-@main.route("/profile")
+@main.route("/expense-history")
 @login_required
-def profile():
+def expense_history():
     expenses = Expense.query.filter_by(user_id=current_user.id)\
         .order_by(Expense.year.desc(), Expense.week_number.desc(), Expense.date.desc())\
         .all()
@@ -567,4 +567,4 @@ def profile():
             "entries": entries,
         })
 
-    return render_template("profile.html", grouped=grouped)
+    return render_template("expense_history.html", grouped=grouped)

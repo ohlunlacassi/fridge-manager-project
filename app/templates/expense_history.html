@@ -2,7 +2,7 @@
 %} {% block extra_css %}
 <link
   rel="stylesheet"
-  href="{{ url_for('static', filename='css/profile.css') }}"
+  href="{{ url_for('static', filename='css/expense_history.css') }}"
 />
 {% endblock %} {% block content %}
 <div class="profile-page">
@@ -29,9 +29,9 @@
   {# ── Week cards ── #} {% if grouped %}
   <div class="week-list">
     {% for week in grouped %}
-    <div class="week-card">
+    <div class="week-card {% if not loop.first %}collapsed{% endif %}">
       {# ── Week header ── #}
-      <div class="week-card-header">
+      <div class="week-card-header" data-toggle="week">
         <div class="week-label">
           <span class="week-number">Week {{ week.week_number }}</span>
           <span class="week-year">· {{ week.year }}</span>
@@ -42,6 +42,17 @@
             >€{{ "%.2f"|format(week.total) }}</span
           >
         </div>
+        <svg
+          class="week-chevron"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#aaa"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </div>
 
       {# ── Expense rows ── #}
