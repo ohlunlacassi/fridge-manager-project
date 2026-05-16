@@ -55,8 +55,7 @@ if (modalOverlay) {
   });
 }
 
-// ── Edit Ingredient Modal ────────────────────────────────────────────────────
-
+// ── Edit Ingredient Modal ──
 const editModal = document.getElementById("edit-modal");
 const editForm = document.getElementById("edit-form");
 
@@ -74,7 +73,6 @@ if (editModal && editForm) {
 
       editForm.action = btn.dataset.url;
 
-      // US9 — sync low stock toggle with the ingredient's current flag
       const lowStockToggle = document.getElementById("edit-is-low-stock");
       if (lowStockToggle) {
         lowStockToggle.checked = btn.dataset.isLowStock === "true";
@@ -92,7 +90,6 @@ if (editModal && editForm) {
     if (e.target === editModal) editModal.classList.remove("open");
   });
 
-  // ── Delete Ingredient (from Edit Modal) ──
   const deleteBtn = document.getElementById("edit-delete-btn");
   const deleteForm = document.getElementById("delete-form");
 
@@ -281,7 +278,7 @@ document.querySelectorAll(".alert").forEach((alert) => {
   }, 3000);
 });
 
-// ── Low stock — apply .amount-low class on page load (US9) ──
+// ── Low stock — apply .amount-low class on page load ──
 document
   .querySelectorAll(".ingredient-quantity[data-is-low-stock]")
   .forEach((span) => {
@@ -290,6 +287,7 @@ document
     }
   });
 
+// ── Shopping list: quantity +/- controls ──
 document.querySelectorAll(".sl-qty-ctrl").forEach((btn) => {
   btn.addEventListener("click", () => {
     const id = btn.dataset.id;
@@ -307,12 +305,47 @@ document.querySelectorAll(".sl-qty-ctrl").forEach((btn) => {
   });
 });
 
+// ── Shopping list: budget bar (US17) ──
+function updateBudgetBar() {
+  const card = document.querySelector(".sl-budget-card");
+  if (!card) return;
+
+  const budget = parseFloat(card.dataset.budget) || 0;
+  const spentEl = document.querySelector(".sl-budget-spent");
+  const spentText = spentEl ? spentEl.textContent.replace("spent €", "") : "0";
+  const spent = parseFloat(spentText) || 0;
+
+  const bar = document.getElementById("sl-budget-bar");
+  const remainingEl = document.querySelector(".sl-budget-remaining");
+
+  if (budget > 0) {
+    const pct = Math.min((spent / budget) * 100, 100);
+    if (bar) {
+      bar.style.width = `${pct}%`;
+      bar.className = "sl-budget-bar";
+      if (pct >= 100) bar.classList.add("danger");
+      else if (pct >= 75) bar.classList.add("warning");
+    }
+  } else {
+    if (bar) bar.style.width = "0%";
+  }
+
+  if (remainingEl) {
+    const remaining = budget - spent;
+    remainingEl.textContent = `€${remaining.toFixed(2)}`;
+    if (remaining < 0) remainingEl.classList.add("over-budget");
+    else remainingEl.classList.remove("over-budget");
+  }
+}
+
+updateBudgetBar();
+
 // ── Shopping list: toggle check with price modal ──
 let pendingToggleBtn = null;
 const slPriceOverlay = document.getElementById("sl-price-overlay");
 const slPriceField = document.getElementById("sl-price-field");
 const slPriceSave = document.getElementById("sl-price-save");
-const slPriceSkip = document.getElementById("sl-price-skip");
+const slPriceCancel = document.getElementById("sl-price-cancel");
 
 function doToggle(btn, price = "") {
   const id = btn.dataset.id;
@@ -323,6 +356,7 @@ function doToggle(btn, price = "") {
   })
     .then((res) => res.json())
     .then((data) => {
+      // อัปเดต spent
       const spentEl = document.querySelector(".sl-budget-spent");
       if (spentEl && data.total_spent !== undefined) {
         spentEl.textContent = `spent €${data.total_spent.toFixed(2)}`;
@@ -355,67 +389,38 @@ function doToggle(btn, price = "") {
         btn.innerHTML = "";
         item.classList.remove("sl-item--done");
         item.dataset.filter = "tobuy";
-
         if (priceEl) priceEl.remove();
       }
+
       updateShoppingProgress();
+      updateBudgetBar();
     });
 }
 
-const slPriceCancel = document.getElementById("sl-price-cancel");
-
-if (slPriceCancel) {
-  slPriceCancel.addEventListener("click", () => {
-    slPriceOverlay.classList.remove("open");
-    pendingToggleBtn = null;
+// Price overlay — close on background click (registered once)
+if (slPriceOverlay) {
+  slPriceOverlay.addEventListener("click", (e) => {
+    if (e.target === slPriceOverlay) {
+      slPriceOverlay.classList.remove("open");
+      pendingToggleBtn = null;
+    }
   });
 }
 
+// Checkbox click
 document.querySelectorAll(".sl-check").forEach((btn) => {
   btn.addEventListener("click", () => {
     const item = btn.closest(".sl-item");
-    const isChecked = item.classList.contains("sl-item--done");
+    if (item.classList.contains("sl-item--done")) return;
 
-    if (isChecked) {
-      return;
-    }
-
-    // check — show price modal
     pendingToggleBtn = btn;
     if (slPriceField) slPriceField.value = "";
-    const itemName = btn
-      .closest(".sl-item")
-      .querySelector(".sl-item-name").textContent;
+    const itemName = item.querySelector(".sl-item-name").textContent;
     const msgEl = document.getElementById("sl-price-msg");
     if (msgEl)
       msgEl.textContent = `How much did you pay for ${itemName}? (optional)`;
-
-    if (slPriceOverlay) {
-      slPriceOverlay.addEventListener("click", (e) => {
-        if (e.target === slPriceOverlay) {
-          slPriceOverlay.classList.remove("open");
-          pendingToggleBtn = null;
-        }
-      });
-    }
-
-    document.querySelectorAll(".sl-check").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const item = btn.closest(".sl-item");
-        const isChecked = item.classList.contains("sl-item--done");
-
-        if (isChecked) return;
-
-        pendingToggleBtn = btn;
-        if (slPriceField) slPriceField.value = "";
-        const itemName = item.querySelector(".sl-item-name").textContent;
-        const msgEl = document.getElementById("sl-price-msg");
-        if (msgEl)
-          msgEl.textContent = `How much did you pay for ${itemName}? (optional)`;
-        if (slPriceOverlay) slPriceOverlay.classList.add("open");
-        setTimeout(() => slPriceField && slPriceField.focus(), 100);
-      });
-    });
+    if (slPriceOverlay) slPriceOverlay.classList.add("open");
+    setTimeout(() => slPriceField && slPriceField.focus(), 100);
   });
 });
 
@@ -428,12 +433,20 @@ if (slPriceSave) {
   });
 }
 
-// Allow Enter key to submit price
+if (slPriceCancel) {
+  slPriceCancel.addEventListener("click", () => {
+    slPriceOverlay.classList.remove("open");
+    pendingToggleBtn = null;
+  });
+}
+
 if (slPriceField) {
   slPriceField.addEventListener("keydown", (e) => {
     if (e.key === "Enter") slPriceSave && slPriceSave.click();
   });
 }
+
+// ── Shopping list: progress update ──
 function updateShoppingProgress() {
   const allItems = document.querySelectorAll(".sl-item");
   const total = allItems.length;
@@ -462,11 +475,8 @@ function updateShoppingProgress() {
 
   const clearBtn = document.querySelector(".sl-clear-btn");
   if (clearBtn) {
-    if (checked > 0) {
-      clearBtn.classList.remove("sl-clear-disabled");
-    } else {
-      clearBtn.classList.add("sl-clear-disabled");
-    }
+    if (checked > 0) clearBtn.classList.remove("sl-clear-disabled");
+    else clearBtn.classList.add("sl-clear-disabled");
   }
 }
 

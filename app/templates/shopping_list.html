@@ -290,7 +290,11 @@ total > 0 else 0 %} {# ── Hero ── #}
   {# ── Sidebar ── #}
   <div class="sl-sidebar">
     {# ── Budget ── #}
-    <div class="sl-budget-card">
+    <div
+      class="sl-budget-card"
+      data-budget="{{ budget }}"
+      data-spent="{{ total_spent }}"
+    >
       <div
         class="sl-list-header"
         style="
@@ -304,6 +308,7 @@ total > 0 else 0 %} {# ── Hero ── #}
           <button type="submit" class="sl-clear-btn">Clear budget</button>
         </form>
       </div>
+
       <div class="sl-budget-row">
         <span
           class="sl-budget-amount {% if total_spent > budget %}over-budget{% endif %}"
@@ -314,11 +319,26 @@ total > 0 else 0 %} {# ── Hero ── #}
           >spent €{{ "%.2f"|format(total_spent) }}</span
         >
       </div>
+
+      <div class="sl-budget-remaining-row">
+        <span class="sl-budget-remaining-label">Remaining</span>
+        <span
+          class="sl-budget-remaining {% if budget - total_spent < 0 %}over-budget{% endif %}"
+        >
+          €{{ "%.2f"|format(budget - total_spent) }}
+        </span>
+      </div>
+
+      <div class="sl-budget-bar-wrap">
+        <div class="sl-budget-bar" id="sl-budget-bar"></div>
+      </div>
+
       {% if total_spent > budget %}
       <p class="sl-budget-over">
         Over budget by €{{ "%.2f"|format(total_spent - budget) }}
       </p>
       {% endif %}
+
       <form
         method="POST"
         action="{{ url_for('main.set_budget') }}"

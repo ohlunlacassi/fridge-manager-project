@@ -523,5 +523,14 @@ def set_budget():
 @login_required
 def clear_budget():
     current_user.weekly_budget = 0.0
+
+    today = datetime.date.today()
+    iso = today.isocalendar()
+    Expense.query.filter_by(
+        user_id=current_user.id,
+        week_number=iso.week,
+        year=iso.year,
+    ).delete()
+
     db.session.commit()
     return redirect(url_for("main.shopping_list"))
