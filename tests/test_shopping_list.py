@@ -12,6 +12,7 @@ def make_user(full_name="Test User", email="test@example.com", password="passwor
         full_name=full_name,
         email=email,
         password_hash=generate_password_hash(password),
+        weekly_budget=0.0,
     )
     db.session.add(user)
     db.session.commit()
@@ -36,6 +37,7 @@ def make_shopping_item(user_id: int, name: str = "Milk",
     db.session.commit()
     return item
 
+
 def make_ingredient(user_id: int, name: str = "Milk",
                     is_low_stock: bool = False) -> Ingredient:
     ing = Ingredient(
@@ -49,23 +51,22 @@ def make_ingredient(user_id: int, name: str = "Milk",
     db.session.add(ing)
     db.session.commit()
     return ing
- 
- 
-def make_expense(user_id: int, amount: float, weeks_ago: int = 0) -> Expense:
-    """Create an expense for this week (or n weeks ago)."""
-    today = datetime.date.today() - datetime.timedelta(weeks=weeks_ago)
+
+
+def make_expense(user_id: int, amount: float,
+                 week_number: int = None, year: int = None) -> Expense:
+    today = datetime.date.today()
     iso = today.isocalendar()
     expense = Expense(
         user_id=user_id,
         amount=amount,
         date=today,
-        week_number=iso.week,
-        year=iso.year,
+        week_number=week_number or iso.week,
+        year=year or iso.year,
     )
     db.session.add(expense)
     db.session.commit()
     return expense
-
 
 # ── Shopping List Page (US11) ──
 
@@ -411,15 +412,17 @@ def test_budget_displayed_on_shopping_list(client, app):
  
  
 def test_total_spent_shows_current_week_only(client, app):
-    """Only expenses from the current ISO week are counted."""
     with app.app_context():
         user = make_user()
-        make_expense(user.id, amount=30.0, weeks_ago=0)   # this week
-        make_expense(user.id, amount=50.0, weeks_ago=1)   # last week
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        make_expense(user.id, amount=30.0)
+        make_expense(user.id, amount=99.0, week_number=iso.week - 1, year=iso.year)
+
     login(client)
     response = client.get("/shopping-list")
     assert b"30.00" in response.data
-    assert b"80.00" not in response.data
+    assert b"99.00" not in response.data
  
  
 def test_over_budget_warning_shown(client, app):
@@ -680,3 +683,150 @@ def test_delete_item_without_price_leaves_expenses(client, app):
 
     with app.app_context():
         assert Expense.query.count() == 1
+
+# ── US17: Budget Overview ──
+ 
+def test_budget_page_shows_budget_amount(client, app):
+    """Budget amount is displayed on shopping list page."""
+    with app.app_context():
+        user = make_user()
+        user.weekly_budget = 50.0
+        db.session.commit()
+ 
+    login(client)
+    response = client.get("/shopping-list")
+    assert b"50.00" in response.data
+ 
+ 
+def test_budget_page_shows_total_spent(client, app):
+    """Total spent this week is shown on shopping list page."""
+    with app.app_context():
+        user = make_user()
+        make_expense(user.id, 12.50)
+        make_expense(user.id, 7.50)
+ 
+    login(client)
+    response = client.get("/shopping-list")
+    assert b"20.00" in response.data
+ 
+ 
+def test_budget_page_shows_zero_spent_when_no_expenses(client, app):
+    """Spent shows 0.00 when no expenses recorded this week."""
+    with app.app_context():
+        make_user()
+ 
+    login(client)
+    response = client.get("/shopping-list")
+    assert b"0.00" in response.data
+ 
+ 
+def test_budget_page_excludes_other_weeks(client, app):
+    """Expenses from other weeks are not counted in current week total."""
+    with app.app_context():
+        user = make_user()
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        # Expense from last week
+        make_expense(user.id, 99.99, week_number=iso.week - 1, year=iso.year)
+ 
+    login(client)
+    response = client.get("/shopping-list")
+    assert b"99.99" not in response.data
+ 
+ 
+def test_budget_page_passes_data_attributes(client, app):
+    """Page renders data-budget and data-spent attributes for JS."""
+    with app.app_context():
+        user = make_user()
+        user.weekly_budget = 30.0
+        db.session.commit()
+        make_expense(user.id, 10.0)
+ 
+    login(client)
+    response = client.get("/shopping-list")
+    assert b'data-budget="30.0"' in response.data
+    assert b'data-spent="10.0"' in response.data
+ 
+ 
+def test_clear_budget_resets_budget_to_zero(client, app):
+    """Clear budget sets weekly_budget to 0."""
+    with app.app_context():
+        user = make_user()
+        user.weekly_budget = 50.0
+        db.session.commit()
+        user_id = user.id
+ 
+    login(client)
+    client.post("/shopping-list/clear-budget")
+ 
+    with app.app_context():
+        user = db.session.get(User, user_id)
+        assert user.weekly_budget == 0.0
+ 
+ 
+def test_clear_budget_deletes_current_week_expenses(client, app):
+    """Clear budget removes all expenses for the current week."""
+    with app.app_context():
+        user = make_user()
+        make_expense(user.id, 5.0)
+        make_expense(user.id, 10.0)
+ 
+    login(client)
+    client.post("/shopping-list/clear-budget")
+ 
+    with app.app_context():
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        count = Expense.query.filter_by(
+            user_id=1,
+            week_number=iso.week,
+            year=iso.year,
+        ).count()
+        assert count == 0
+ 
+ 
+def test_clear_budget_keeps_other_weeks_expenses(client, app):
+    """Clear budget does not delete expenses from other weeks."""
+    with app.app_context():
+        user = make_user()
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        make_expense(user.id, 20.0, week_number=iso.week - 1, year=iso.year)
+ 
+    login(client)
+    client.post("/shopping-list/clear-budget")
+ 
+    with app.app_context():
+        assert Expense.query.count() == 1
+ 
+ 
+def test_set_budget_saves_to_user(client, app):
+    """Setting budget saves correct value to user.weekly_budget."""
+    with app.app_context():
+        make_user()
+ 
+    login(client)
+    client.post("/shopping-list/set-budget", data={"budget": "45.00"})
+ 
+    with app.app_context():
+        user = User.query.first()
+        assert user.weekly_budget == 45.0
+ 
+ 
+def test_budget_user_isolated(client, app):
+    """Each user sees only their own budget and expenses."""
+    with app.app_context():
+        user_a = make_user(email="a@example.com")
+        user_b = make_user(full_name="User B", email="b@example.com")
+        user_a.weekly_budget = 100.0
+        user_b.weekly_budget = 20.0
+        db.session.commit()
+        make_expense(user_a.id, 50.0)
+        make_expense(user_b.id, 5.0)
+ 
+    login(client, email="b@example.com")
+    response = client.get("/shopping-list")
+    assert b"20.00" in response.data
+    assert b"5.00" in response.data
+    assert b"100.00" not in response.data
+    assert b"50.00" not in response.data
