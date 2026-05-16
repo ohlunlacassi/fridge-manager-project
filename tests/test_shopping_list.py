@@ -684,6 +684,61 @@ def test_delete_item_without_price_leaves_expenses(client, app):
     with app.app_context():
         assert Expense.query.count() == 1
 
+def test_edit_price_updates_item_and_expense(client, app):
+    """Editing price updates item.price and the associated expense."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Milk", is_checked=True)
+        item.price = 3.00
+        db.session.commit()
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        expense = Expense(
+            user_id=user.id,
+            amount=3.00,
+            date=today,
+            week_number=iso.week,
+            year=iso.year,
+        )
+        db.session.add(expense)
+        db.session.commit()
+        item_id = item.id
+
+    login(client)
+    response = client.post(
+        f"/shopping-list/edit-price/{item_id}",
+        json={"price": "5.00"},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["price"] == 5.0
+
+    with app.app_context():
+        updated = db.session.get(ShoppingItem, item_id)
+        assert updated.price == 5.0
+        expense = Expense.query.filter_by(user_id=1).first()
+        assert expense.amount == 5.0
+
+
+def test_edit_price_invalid_value_returns_400(client, app):
+    """Editing price with invalid value returns 400."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Milk", is_checked=True)
+        item.price = 3.00
+        db.session.commit()
+        item_id = item.id
+
+    login(client)
+    response = client.post(
+        f"/shopping-list/edit-price/{item_id}",
+        json={"price": "0"},
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+
 # ── US17: Budget Overview ──
  
 def test_budget_page_shows_budget_amount(client, app):
