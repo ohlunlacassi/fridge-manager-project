@@ -362,27 +362,60 @@ function doToggle(btn, price = "") {
     });
 }
 
+const slPriceCancel = document.getElementById("sl-price-cancel");
+
+if (slPriceCancel) {
+  slPriceCancel.addEventListener("click", () => {
+    slPriceOverlay.classList.remove("open");
+    pendingToggleBtn = null;
+  });
+}
+
 document.querySelectorAll(".sl-check").forEach((btn) => {
   btn.addEventListener("click", () => {
     const item = btn.closest(".sl-item");
     const isChecked = item.classList.contains("sl-item--done");
 
     if (isChecked) {
-      // uncheck — no price modal needed
-      doToggle(btn);
-    } else {
-      // check — show price modal
-      pendingToggleBtn = btn;
-      if (slPriceField) slPriceField.value = "";
-      const itemName = btn
-        .closest(".sl-item")
-        .querySelector(".sl-item-name").textContent;
-      const msgEl = document.getElementById("sl-price-msg");
-      if (msgEl)
-        msgEl.textContent = `How much did you pay for ${itemName}? (optional)`;
-      if (slPriceOverlay) slPriceOverlay.classList.add("open");
-      setTimeout(() => slPriceField && slPriceField.focus(), 100);
+      return;
     }
+
+    // check — show price modal
+    pendingToggleBtn = btn;
+    if (slPriceField) slPriceField.value = "";
+    const itemName = btn
+      .closest(".sl-item")
+      .querySelector(".sl-item-name").textContent;
+    const msgEl = document.getElementById("sl-price-msg");
+    if (msgEl)
+      msgEl.textContent = `How much did you pay for ${itemName}? (optional)`;
+
+    if (slPriceOverlay) {
+      slPriceOverlay.addEventListener("click", (e) => {
+        if (e.target === slPriceOverlay) {
+          slPriceOverlay.classList.remove("open");
+          pendingToggleBtn = null;
+        }
+      });
+    }
+
+    document.querySelectorAll(".sl-check").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const item = btn.closest(".sl-item");
+        const isChecked = item.classList.contains("sl-item--done");
+
+        if (isChecked) return;
+
+        pendingToggleBtn = btn;
+        if (slPriceField) slPriceField.value = "";
+        const itemName = item.querySelector(".sl-item-name").textContent;
+        const msgEl = document.getElementById("sl-price-msg");
+        if (msgEl)
+          msgEl.textContent = `How much did you pay for ${itemName}? (optional)`;
+        if (slPriceOverlay) slPriceOverlay.classList.add("open");
+        setTimeout(() => slPriceField && slPriceField.focus(), 100);
+      });
+    });
   });
 });
 

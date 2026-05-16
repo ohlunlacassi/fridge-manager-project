@@ -410,6 +410,46 @@ def shopping_list_delete(id: int):
         abort(404)
     if item.user_id != current_user.id:
         abort(403)
+
+    if item.price:
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        expense = Expense.query.filter_by(
+            user_id=current_user.id,
+            amount=item.price,
+            week_number=iso.week,
+            year=iso.year,
+        ).first()
+        if expense:
+            db.session.delete(expense)
+
+    db.session.delete(item)
+    db.session.commit()
+    return redirect(url_for("main.shopping_list"))
+    item = db.session.get(ShoppingItem, id)
+    if item is None:
+        abort(404)
+
+    if item.user_id != current_user.id:
+        abort(403)
+
+    if item.ingredient_id:
+        ingredient = db.session.get(Ingredient, item.ingredient_id)
+        if ingredient:
+            ingredient.is_low_stock = False
+
+    if item.price:
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        expense = Expense.query.filter_by(
+            user_id=current_user.id,
+            amount=item.price,
+            week_number=iso.week,
+            year=iso.year,
+        ).first()
+        if expense:
+            db.session.delete(expense)
+
     db.session.delete(item)
     db.session.commit()
     return redirect(url_for("main.shopping_list"))

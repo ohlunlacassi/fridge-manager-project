@@ -629,3 +629,54 @@ def test_expense_user_isolated(client, app):
     assert b"5.00" in response.data
     assert b"8.00" not in response.data
  
+def test_delete_item_removes_associated_expense(client, app):
+    """Deleting a checked item with price removes its expense."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Milk", is_checked=True)
+        item.price = 2.50
+        db.session.commit()
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        expense = Expense(
+            user_id=user.id,
+            amount=2.50,
+            date=today,
+            week_number=iso.week,
+            year=iso.year,
+        )
+        db.session.add(expense)
+        db.session.commit()
+        item_id = item.id
+
+    login(client)
+    client.post(f"/shopping-list/delete/{item_id}", follow_redirects=False)
+
+    with app.app_context():
+        assert Expense.query.count() == 0
+
+
+def test_delete_item_without_price_leaves_expenses(client, app):
+    """Deleting an item without price does not affect other expenses."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Salt")
+        db.session.commit()
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        expense = Expense(
+            user_id=user.id,
+            amount=5.00,
+            date=today,
+            week_number=iso.week,
+            year=iso.year,
+        )
+        db.session.add(expense)
+        db.session.commit()
+        item_id = item.id
+
+    login(client)
+    client.post(f"/shopping-list/delete/{item_id}", follow_redirects=False)
+
+    with app.app_context():
+        assert Expense.query.count() == 1

@@ -313,6 +313,7 @@
 .sl-check--checked {
   background: #7be495;
   border-color: #7be495;
+  cursor: default;
 }
 
 /* Item icon */
