@@ -185,3 +185,51 @@ a:hover {
   outline: none;
   border-color: #111;
 }
+
+.avatar-dropdown-wrapper {
+  position: relative;
+}
+
+.avatar-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  background: #1a1a1f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.4rem;
+  min-width: 180px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 50;
+}
+
+.avatar-dropdown.open {
+  display: block;
+}
+
+.avatar-dropdown-name {
+  padding: 0.5rem 0.75rem 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 0.3rem;
+}
+
+.avatar-dropdown-item {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.avatar-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  text-decoration: none;
+}

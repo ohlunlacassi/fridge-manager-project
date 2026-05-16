@@ -1,0 +1,90 @@
+{% extends "base.html" %} {% block title %}Profile — Fridge Manager{% endblock
+%} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/profile.css') }}"
+/>
+{% endblock %} {% block content %}
+<div class="profile-page">
+  {# ── Profile header ── #}
+  <div class="profile-header">
+    <div class="profile-avatar-lg">
+      {{ current_user.full_name[0].upper() if current_user.full_name else 'U' }}
+    </div>
+    <div class="profile-meta">
+      <h1 class="profile-name">{{ current_user.full_name }}</h1>
+      <p class="profile-email">{{ current_user.email }}</p>
+    </div>
+  </div>
+
+  {# ── Section heading ── #}
+  <div class="history-heading">
+    <div class="history-eyebrow">
+      <span class="hero-dot"></span>
+      Expense History
+    </div>
+    <p class="history-sub">All spending grouped by calendar week</p>
+  </div>
+
+  {# ── Week cards ── #} {% if grouped %}
+  <div class="week-list">
+    {% for week in grouped %}
+    <div class="week-card">
+      {# ── Week header ── #}
+      <div class="week-card-header">
+        <div class="week-label">
+          <span class="week-number">Week {{ week.week_number }}</span>
+          <span class="week-year">· {{ week.year }}</span>
+        </div>
+        <div class="week-total">
+          <span class="week-total-label">Total</span>
+          <span class="week-total-amount"
+            >€{{ "%.2f"|format(week.total) }}</span
+          >
+        </div>
+      </div>
+
+      {# ── Expense rows ── #}
+      <div class="expense-list">
+        {% for expense in week.entries %}
+        <div class="expense-row">
+          <span class="expense-date">
+            {{ expense.date.strftime("%d %b") }}
+          </span>
+          <span class="expense-desc">
+            {{ expense.description if expense.description else "—" }}
+          </span>
+          <span class="expense-amount"
+            >€{{ "%.2f"|format(expense.amount) }}</span
+          >
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %} {# ── Empty state ── #}
+  <div class="empty-state">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="48"
+      height="48"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <line x1="2" y1="10" x2="22" y2="10" />
+    </svg>
+    <p>No expenses recorded yet.</p>
+    <p class="muted" style="font-size: 0.85rem">
+      Expenses are tracked automatically when you check off shopping items.
+    </p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -3,6 +3,7 @@ import datetime
 from flask import Blueprint, redirect, render_template, request, flash, url_for, abort
 from flask_login import login_required, logout_user, login_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from collections import defaultdict
 
 from app import db
 from app.models import User, Ingredient, ShoppingItem, Expense
@@ -388,6 +389,7 @@ def shopping_list_toggle(id: int):
                     expense = Expense(
                         user_id=current_user.id,
                         amount=amount,
+                        description=item.name,
                         date=datetime.date.today(),
                         week_number=datetime.date.today().isocalendar().week,
                         year=datetime.date.today().isocalendar().year,
@@ -426,35 +428,7 @@ def shopping_list_delete(id: int):
     db.session.delete(item)
     db.session.commit()
     return redirect(url_for("main.shopping_list"))
-    item = db.session.get(ShoppingItem, id)
-    if item is None:
-        abort(404)
-
-    if item.user_id != current_user.id:
-        abort(403)
-
-    if item.ingredient_id:
-        ingredient = db.session.get(Ingredient, item.ingredient_id)
-        if ingredient:
-            ingredient.is_low_stock = False
-
-    if item.price:
-        today = datetime.date.today()
-        iso = today.isocalendar()
-        expense = Expense.query.filter_by(
-            user_id=current_user.id,
-            amount=item.price,
-            week_number=iso.week,
-            year=iso.year,
-        ).first()
-        if expense:
-            db.session.delete(expense)
-
-    db.session.delete(item)
-    db.session.commit()
-    return redirect(url_for("main.shopping_list"))
-
-
+    
 @main.route("/shopping-list/quantity/<int:id>", methods=["POST"])
 @login_required
 def shopping_list_update_quantity(id: int):
@@ -569,3 +543,28 @@ def clear_budget():
 
     db.session.commit()
     return redirect(url_for("main.shopping_list"))
+
+@main.route("/profile")
+@login_required
+def profile():
+    expenses = Expense.query.filter_by(user_id=current_user.id)\
+        .order_by(Expense.year.desc(), Expense.week_number.desc(), Expense.date.desc())\
+        .all()
+
+    # Group by (year, week_number)
+    weeks: dict = defaultdict(list)
+    for e in expenses:
+        weeks[(e.year, e.week_number)].append(e)
+
+    # Sort weeks newest first, build list of dicts
+    grouped = []
+    for (year, week_num), entries in sorted(weeks.items(), reverse=True):
+        total = sum(e.amount for e in entries)
+        grouped.append({
+            "year": year,
+            "week_number": week_num,
+            "total": total,
+            "entries": entries,
+        })
+
+    return render_template("profile.html", grouped=grouped)

@@ -1,0 +1,167 @@
+/* ──────────────────────────────────────────
+   profile.css  —  US17 Expense History page
+   ────────────────────────────────────────── */
+
+/* ── Page wrapper ── */
+.profile-page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+
+/* ── Profile header ── */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 3.5rem;
+}
+
+.profile-avatar-lg {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #ff6b6b;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+
+.profile-email {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ── Section eyebrow ── */
+.history-heading {
+  margin-bottom: 1.75rem;
+}
+
+.history-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.4rem;
+}
+
+.history-sub {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* ── Week list ── */
+.week-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Week card ── */
+.week-card {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* ── Week card header ── */
+.week-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1.5px solid #f0f0f0;
+}
+
+.week-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.week-number {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.week-year {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.week-total {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.week-total-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #aaa;
+}
+
+.week-total-amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111;
+}
+
+/* ── Expense rows ── */
+.expense-list {
+  padding: 0.35rem 0;
+}
+
+.expense-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.expense-row:last-child {
+  border-bottom: none;
+}
+
+.expense-date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+.expense-desc {
+  font-size: 0.88rem;
+  color: #444;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expense-amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
