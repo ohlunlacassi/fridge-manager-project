@@ -518,6 +518,41 @@ def set_budget():
     flash("Weekly budget updated.", "success")
     return redirect(url_for("main.shopping_list"))
 
+@main.route("/shopping-list/edit-price/<int:id>", methods=["POST"])
+@login_required
+def shopping_list_edit_price(id: int):
+    item = db.session.get(ShoppingItem, id)
+    if item is None:
+        abort(404)
+    if item.user_id != current_user.id:
+        abort(403)
+
+    data = request.get_json(silent=True) or {}
+    price_str = str(data.get("price", "")).strip()
+
+    try:
+        new_price = float(price_str)
+        if new_price <= 0:
+            raise ValueError
+    except ValueError:
+        return {"error": "Invalid price"}, 400
+
+    if item.price:
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        old_expense = Expense.query.filter_by(
+            user_id=current_user.id,
+            amount=item.price,
+            week_number=iso.week,
+            year=iso.year,
+        ).first()
+        if old_expense:
+            old_expense.amount = new_price
+
+    item.price = new_price
+    db.session.commit()
+    return {"price": new_price, "total_spent": get_total_spent()}, 200
+
 
 @main.route("/shopping-list/clear-budget", methods=["POST"])
 @login_required

@@ -374,6 +374,22 @@
   font-weight: 600;
 }
 
+.sl-edit-price-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #aaa;
+  padding: 0 0 0 0.25rem;
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.sl-edit-price-btn:hover {
+  color: #555;
+}
+
 /* Delete */
 .sl-delete-btn {
   background: none;

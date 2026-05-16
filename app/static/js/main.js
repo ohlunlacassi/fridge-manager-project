@@ -340,6 +340,86 @@ function updateBudgetBar() {
 
 updateBudgetBar();
 
+// ── Shopping list: edit price (pencil icon) ──
+let editPriceItemId = null;
+const slEditPriceOverlay = document.getElementById("sl-edit-price-overlay");
+const slEditPriceField = document.getElementById("sl-edit-price-field");
+const slEditPriceSave = document.getElementById("sl-edit-price-save");
+const slEditPriceCancel = document.getElementById("sl-edit-price-cancel");
+
+const PENCIL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+
+function attachEditPriceListener(btn) {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    editPriceItemId = btn.dataset.id;
+    if (slEditPriceField) slEditPriceField.value = btn.dataset.price;
+    if (slEditPriceOverlay) slEditPriceOverlay.classList.add("open");
+    setTimeout(() => slEditPriceField && slEditPriceField.focus(), 100);
+  });
+}
+
+// Attach to existing pencil buttons (server-rendered)
+document
+  .querySelectorAll(".sl-edit-price-btn")
+  .forEach(attachEditPriceListener);
+
+if (slEditPriceSave) {
+  slEditPriceSave.addEventListener("click", () => {
+    const price = slEditPriceField ? slEditPriceField.value : "";
+    if (!price || parseFloat(price) <= 0) return;
+
+    fetch(`/shopping-list/edit-price/${editPriceItemId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ price }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const btn = document.querySelector(
+          `.sl-edit-price-btn[data-id="${editPriceItemId}"]`,
+        );
+        if (btn) {
+          btn.dataset.price = data.price;
+          const priceEl = btn.closest(".sl-item-price");
+          if (priceEl) {
+            // อัปเดต text node (ราคา) โดยไม่แตะ button
+            priceEl.childNodes[0].textContent = `€${parseFloat(data.price).toFixed(2)} `;
+          }
+        }
+        const spentEl = document.querySelector(".sl-budget-spent");
+        if (spentEl && data.total_spent !== undefined) {
+          spentEl.textContent = `spent €${data.total_spent.toFixed(2)}`;
+        }
+        updateBudgetBar();
+        slEditPriceOverlay.classList.remove("open");
+        editPriceItemId = null;
+      });
+  });
+}
+
+if (slEditPriceCancel) {
+  slEditPriceCancel.addEventListener("click", () => {
+    slEditPriceOverlay.classList.remove("open");
+    editPriceItemId = null;
+  });
+}
+
+if (slEditPriceOverlay) {
+  slEditPriceOverlay.addEventListener("click", (e) => {
+    if (e.target === slEditPriceOverlay) {
+      slEditPriceOverlay.classList.remove("open");
+      editPriceItemId = null;
+    }
+  });
+}
+
+if (slEditPriceField) {
+  slEditPriceField.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") slEditPriceSave && slEditPriceSave.click();
+  });
+}
+
 // ── Shopping list: toggle check with price modal ──
 let pendingToggleBtn = null;
 const slPriceOverlay = document.getElementById("sl-price-overlay");
@@ -356,7 +436,6 @@ function doToggle(btn, price = "") {
   })
     .then((res) => res.json())
     .then((data) => {
-      // อัปเดต spent
       const spentEl = document.querySelector(".sl-budget-spent");
       if (spentEl && data.total_spent !== undefined) {
         spentEl.textContent = `spent €${data.total_spent.toFixed(2)}`;
@@ -378,10 +457,11 @@ function doToggle(btn, price = "") {
           if (!priceEl) {
             const span = document.createElement("span");
             span.className = "sl-item-price";
-            span.textContent = `€${parseFloat(price).toFixed(2)}`;
+            span.innerHTML = `€${parseFloat(price).toFixed(2)} <button class="sl-edit-price-btn" data-id="${id}" data-price="${parseFloat(price).toFixed(2)}" aria-label="Edit price">${PENCIL_SVG}</button>`;
             nameEl.after(span);
+            attachEditPriceListener(span.querySelector(".sl-edit-price-btn"));
           } else {
-            priceEl.textContent = `€${parseFloat(price).toFixed(2)}`;
+            priceEl.childNodes[0].textContent = `€${parseFloat(price).toFixed(2)} `;
           }
         }
       } else {
@@ -397,7 +477,7 @@ function doToggle(btn, price = "") {
     });
 }
 
-// Price overlay — close on background click (registered once)
+// Price overlay — close on background click
 if (slPriceOverlay) {
   slPriceOverlay.addEventListener("click", (e) => {
     if (e.target === slPriceOverlay) {
