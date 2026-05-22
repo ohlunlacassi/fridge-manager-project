@@ -40,10 +40,6 @@ if (avatarBtn && avatarDropdown) {
     e.stopPropagation();
     avatarDropdown.classList.toggle("open");
   });
-
-  document.addEventListener("click", () => {
-    avatarDropdown.classList.remove("open");
-  });
 }
 
 // ── Add Ingredient Modal ──
@@ -196,10 +192,6 @@ if (sortBtn && sortDropdown) {
     sortDropdown.style.display = isOpen ? "none" : "flex";
   });
 
-  document.addEventListener("click", () => {
-    sortDropdown.style.display = "none";
-  });
-
   sortDropdown.addEventListener("click", (e) => {
     e.stopPropagation();
   });
@@ -326,8 +318,6 @@ function updateBudgetBar() {
   if (!card) return;
 
   const budget = parseFloat(card.dataset.budget) || 0;
-  const spentEl = document.querySelector(".sl-budget-spent");
-  const spentText = spentEl ? spentEl.textContent.replace("spent €", "") : "0";
   const spent = parseFloat(spentText) || 0;
 
   const bar = document.getElementById("sl-budget-bar");
@@ -398,7 +388,6 @@ if (slEditPriceSave) {
           btn.dataset.price = data.price;
           const priceEl = btn.closest(".sl-item-price");
           if (priceEl) {
-            // อัปเดต text node (ราคา) โดยไม่แตะ button
             priceEl.childNodes[0].textContent = `€${parseFloat(data.price).toFixed(2)} `;
           }
         }
@@ -454,6 +443,11 @@ function doToggle(btn, price = "") {
       const spentEl = document.querySelector(".sl-budget-spent");
       if (spentEl && data.total_spent !== undefined) {
         spentEl.textContent = `spent €${data.total_spent.toFixed(2)}`;
+      }
+
+      const budgetCard = document.querySelector(".sl-budget-card");
+      if (budgetCard && data.total_spent !== undefined) {
+        budgetCard.dataset.spent = data.total_spent;
       }
 
       const item = btn.closest(".sl-item");
@@ -627,4 +621,10 @@ document.querySelectorAll('[data-toggle="week"]').forEach((header) => {
   header.addEventListener("click", () => {
     header.closest(".week-card").classList.toggle("collapsed");
   });
+});
+
+// ── Close dropdowns on outside click ──
+document.addEventListener("click", () => {
+  if (avatarDropdown) avatarDropdown.classList.remove("open");
+  if (sortDropdown) sortDropdown.style.display = "none";
 });
