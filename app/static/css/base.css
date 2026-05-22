@@ -14,6 +14,12 @@ body {
   min-height: 100vh;
 }
 
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 a {
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
@@ -232,4 +238,125 @@ a:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
   text-decoration: none;
+}
+
+/* ══════════════════════════════════════
+   Responsive — Base (navbar + dashboard hero)
+   ══════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* ── Navbar ── */
+  .navbar {
+    padding: 0.85rem 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .logo-tagline {
+    display: none;
+  }
+
+  .navbar-links-center {
+    position: static;
+    transform: none;
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 0.5rem;
+  }
+
+  .navbar-right {
+    gap: 0.5rem;
+  }
+
+  .navbar-logout {
+    display: none;
+  }
+
+  .navbar-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.72rem;
+  }
+
+  /* ── Dashboard hero ── */
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem 0 1.25rem;
+    gap: 1rem;
+  }
+
+  .hero-headline {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+
+  .use-first-stat {
+    width: 100%;
+    transform: none;
+    min-width: unset;
+    padding: 1rem 1.25rem;
+  }
+
+  .use-first-num {
+    font-size: 2.5rem;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+  }
+
+  .filter-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-tab {
+    flex-shrink: 0;
+  }
+
+  .toolbar-right {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .btn-use-first {
+    order: 1;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .toolbar-right-actions {
+    order: 2;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .toolbar-search {
+    order: 3;
+    flex: 0 0 100%;
+    max-width: 100%;
+    .toolbar-search {
+      order: 3;
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+      text-align: center;
+    }
+  }
+
+  .toolbar-search::placeholder {
+    text-align: center;
+  }
 }
