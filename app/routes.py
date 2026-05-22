@@ -13,7 +13,7 @@ main = Blueprint("main", __name__)
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 CATEGORIES = ["Vegetables", "Dairy", "Meat", "Condiments", "Drinks", "Other"]
-UNITS = ["g", "kg", "ml", "l", "pcs"]
+UNITS = ["g", "kg", "ml", "l", "pcs", "pack"]
 
 
 def get_dates() -> dict:
