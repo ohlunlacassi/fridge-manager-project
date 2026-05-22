@@ -92,11 +92,6 @@ def ingredient_add():
             return render_template("ingredients/ingredient_add.html",
                                    categories=CATEGORIES, units=UNITS, **get_dates())
 
-        if unit not in UNITS:
-            flash("Please select a valid unit.", "error")
-            return render_template("ingredients/ingredient_add.html",
-                                   categories=CATEGORIES, units=UNITS, **get_dates())
-
         if category not in CATEGORIES:
             flash("Please select a valid category.", "error")
             return render_template("ingredients/ingredient_add.html",

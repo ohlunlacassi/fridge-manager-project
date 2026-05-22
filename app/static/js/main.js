@@ -318,8 +318,7 @@ function updateBudgetBar() {
   if (!card) return;
 
   const budget = parseFloat(card.dataset.budget) || 0;
-  const spent = parseFloat(spentText) || 0;
-
+  const spent = parseFloat(card.dataset.spent) || 0;
   const bar = document.getElementById("sl-budget-bar");
   const remainingEl = document.querySelector(".sl-budget-remaining");
 
