@@ -730,3 +730,165 @@
 .sl-price-modal-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
 }
+
+/* ══════════════════════════════════════
+   Responsive — Shopping List
+   ══════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* ── Shopping hero ── */
+  .sl-hero {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 1.75rem 0 1.5rem;
+    gap: 1rem;
+    overflow: hidden;
+  }
+
+  .sl-hero-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sl-hero .hero-headline {
+    font-size: clamp(1.6rem, 7vw, 2.2rem);
+    word-break: break-word;
+  }
+
+  .sl-hero-desc {
+    display: none;
+  }
+
+  .navbar {
+    padding: 0.85rem 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .navbar-brand {
+    flex: 1;
+  }
+
+  .navbar-links-center {
+    position: static;
+    transform: none;
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 0.5rem;
+  }
+
+  /* ── Progress card: small, top-right ── */
+  .sl-progress-card {
+    min-width: unset;
+    max-width: 120px;
+    width: 120px;
+    padding: 0.75rem 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .sl-progress-num {
+    font-size: 2.5rem;
+  }
+
+  .sl-progress-total {
+    font-size: 1rem;
+  }
+
+  .sl-progress-pct {
+    position: static;
+    display: inline-block;
+    margin-bottom: 0.25rem;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .sl-progress-hint {
+    font-size: 0.68rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* ── Add form: stack button below ── */
+  .sl-add-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sl-add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sl-add-input-wrap {
+    width: 100%;
+  }
+
+  .sl-sidebar {
+    order: -1;
+  }
+
+  /* ── Toolbar: wrap filter tabs ── */
+  .sl-toolbar {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .sl-filter-tabs {
+    flex-wrap: wrap;
+  }
+
+  /* ── Layout: single column ── */
+  .sl-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Item row: tighter padding ── */
+  .sl-item {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .sl-list-header {
+    padding: 0.85rem 1rem 0.7rem;
+  }
+
+  /* ── Qty controls ── */
+  .sl-qty-controls {
+    padding: 0.2rem 0.4rem;
+  }
+
+  .sl-qty-val {
+    min-width: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* ── Hide item icon on very small screens ── */
+  .sl-item-icon {
+    display: none;
+  }
+
+  /* ── Qty wrap: move to new line ── */
+  .sl-add-input-wrap {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 0.6rem 1rem;
+    border-radius: 16px;
+    gap: 0.5rem;
+  }
+
+  .sl-qty-wrap {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #eee;
+    padding-left: 0;
+    padding-top: 0.5rem;
+  }
+
+  /* ── Confirm modal ── */
+  .sl-confirm-modal {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+}

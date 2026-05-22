@@ -318,15 +318,18 @@ def test_clear_does_not_affect_unchecked_items(client, app):
 
 # ── Set Budget (US14) ──
  
+        
 def test_set_budget_saves_to_user(client, app):
-    """Setting budget updates user.weekly_budget."""
+    """Setting budget saves correct value to user.weekly_budget."""
     with app.app_context():
         make_user()
+ 
     login(client)
-    client.post("/shopping-list/set-budget", data={"budget": "50.00"})
+    client.post("/shopping-list/set-budget", data={"budget": "45.00"})
+ 
     with app.app_context():
-        user = User.query.filter_by(email="test@example.com").first()
-        assert user.weekly_budget == 50.0
+        user = User.query.first()
+        assert user.weekly_budget == 45.0
  
  
 def test_set_budget_updates_existing_budget(client, app):
@@ -853,20 +856,6 @@ def test_clear_budget_keeps_other_weeks_expenses(client, app):
  
     with app.app_context():
         assert Expense.query.count() == 1
- 
- 
-def test_set_budget_saves_to_user(client, app):
-    """Setting budget saves correct value to user.weekly_budget."""
-    with app.app_context():
-        make_user()
- 
-    login(client)
-    client.post("/shopping-list/set-budget", data={"budget": "45.00"})
- 
-    with app.app_context():
-        user = User.query.first()
-        assert user.weekly_budget == 45.0
- 
  
 def test_budget_user_isolated(client, app):
     """Each user sees only their own budget and expenses."""

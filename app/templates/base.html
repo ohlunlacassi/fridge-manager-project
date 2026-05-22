@@ -125,9 +125,14 @@
             >
               Expense History
             </a>
+            <a
+              href="{{ url_for('main.logout') }}"
+              class="avatar-dropdown-item avatar-dropdown-item--danger"
+            >
+              Logout
+            </a>
           </div>
         </div>
-        <a href="{{ url_for('main.logout') }}" class="navbar-logout">Logout</a>
       </div>
       {% else %}
       <div class="navbar-right">
