@@ -846,6 +846,10 @@
     width: 100%;
   }
 
+  .sl-sidebar {
+    order: -1;
+  }
+
   /* ── Toolbar: wrap filter tabs ── */
   .sl-toolbar {
     flex-wrap: wrap;
