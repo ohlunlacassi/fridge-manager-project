@@ -232,6 +232,7 @@ def ingredient_delete(id: int):
     if ingredient.user_id != current_user.id:
         abort(403)
 
+    name = ingredient.name
     db.session.delete(ingredient)
     db.session.commit()
 
@@ -338,12 +339,15 @@ def shopping_list():
         return redirect(url_for("main.shopping_list"))
 
     # GET
-    items = ShoppingItem.query.filter_by(user_id=current_user.id).order_by(ShoppingItem.id.asc()).all()
+    items = ShoppingItem.query.filter_by(
+        user_id=current_user.id).order_by(ShoppingItem.id.asc()).all()
 
     on_list_ids = {item.ingredient_id for item in items if item.ingredient_id}
-    suggestions_query = Ingredient.query.filter_by(user_id=current_user.id, is_low_stock=True)
+    suggestions_query = Ingredient.query.filter_by(
+        user_id=current_user.id, is_low_stock=True)
     if on_list_ids:
-        suggestions_query = suggestions_query.filter(~Ingredient.id.in_(on_list_ids))
+        suggestions_query = suggestions_query.filter(
+            ~Ingredient.id.in_(on_list_ids))
     suggestions = suggestions_query.all()
 
     today = datetime.date.today()
@@ -428,7 +432,8 @@ def shopping_list_delete(id: int):
     db.session.delete(item)
     db.session.commit()
     return redirect(url_for("main.shopping_list"))
-    
+
+
 @main.route("/shopping-list/quantity/<int:id>", methods=["POST"])
 @login_required
 def shopping_list_update_quantity(id: int):
@@ -492,6 +497,7 @@ def set_budget():
     flash("Weekly budget updated.", "success")
     return redirect(url_for("main.shopping_list"))
 
+
 @main.route("/shopping-list/edit-price/<int:id>", methods=["POST"])
 @login_required
 def shopping_list_edit_price(id: int):
@@ -543,6 +549,7 @@ def clear_budget():
 
     db.session.commit()
     return redirect(url_for("main.shopping_list"))
+
 
 @main.route("/expense-history")
 @login_required

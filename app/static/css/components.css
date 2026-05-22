@@ -121,6 +121,15 @@ body {
   background: rgba(255, 255, 255, 0.12);
 }
 
+.avatar-dropdown-item--danger {
+  color: #ff6b6b;
+}
+
+.avatar-dropdown-item--danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ff6b6b;
+}
+
 .toolbar-search {
   flex: 1;
   max-width: 280px;

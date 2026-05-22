@@ -1,10 +1,13 @@
 from app import db
 
+
 class ShoppingItem(db.Model):
+    """An item on the user's shopping list — linked optionally to an Ingredient."""
     __tablename__ = "shopping_items"
 
     id: int = db.Column(db.Integer, primary_key=True)
-    user_id: int = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id: int = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=False)
     name: str = db.Column(db.String(100), nullable=False)
     is_checked: bool = db.Column(db.Boolean, nullable=False, default=False)
     ingredient_id: int = db.Column(
