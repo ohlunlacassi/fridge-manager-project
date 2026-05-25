@@ -595,13 +595,42 @@ document.querySelectorAll(".sl-item-delete-form").forEach((form) => {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     pendingDeleteForm = form;
+
+    const item = form.closest(".sl-item");
+    const isChecked = item && item.classList.contains("sl-item--done");
+    const confirmMsg = document.querySelector(".sl-confirm-msg");
+
+    if (isChecked && confirmMsg) {
+      const itemName = item.querySelector(".sl-item-name").textContent.trim();
+      confirmMsg.textContent = `Remove "${itemName}" from your list? This will also reduce it from your inventory.`;
+    } else if (confirmMsg) {
+      confirmMsg.textContent = "Remove this item from your list?";
+    }
+
     if (slConfirmOverlay) slConfirmOverlay.classList.add("open");
   });
 });
 
 if (slConfirmOk) {
   slConfirmOk.addEventListener("click", () => {
-    if (pendingDeleteForm) pendingDeleteForm.submit();
+    if (pendingDeleteForm) {
+      const item = pendingDeleteForm.closest(".sl-item");
+      const isChecked = item && item.classList.contains("sl-item--done");
+
+      if (isChecked) {
+        const itemName = item.querySelector(".sl-item-name").textContent.trim();
+        const qtyEl = item.querySelector(".sl-qty-val");
+        const qty = parseFloat(qtyEl ? qtyEl.textContent : "1") || 1;
+
+        fetch("/ingredient/reduce-by-name", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: itemName, quantity: qty }),
+        });
+      }
+
+      pendingDeleteForm.submit();
+    }
     slConfirmOverlay.classList.remove("open");
   });
 }

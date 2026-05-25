@@ -271,6 +271,31 @@ def ingredient_restock_by_name():
     return {"status": "created", "quantity": quantity}, 200
 
 
+@main.route("/ingredient/reduce-by-name", methods=["POST"])
+@login_required
+def ingredient_reduce_by_name():
+    data = request.get_json(silent=True) or {}
+    name = data.get("name", "").strip()
+    try:
+        quantity = float(data.get("quantity", 0))
+        if quantity <= 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        return {"error": "Invalid quantity"}, 400
+
+    ingredient = Ingredient.query.filter(
+        Ingredient.user_id == current_user.id,
+        db.func.lower(Ingredient.name) == name.lower()
+    ).first()
+
+    if ingredient:
+        ingredient.quantity = max(0, ingredient.quantity - quantity)
+        db.session.commit()
+        return {"quantity": ingredient.quantity}, 200
+
+    return {"status": "not found"}, 200
+
+
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
