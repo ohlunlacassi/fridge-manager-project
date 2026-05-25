@@ -710,3 +710,51 @@ if (slRestockCancel) {
     pendingRestockQty = 0;
   });
 }
+
+// ── Shopping list: autocomplete ──
+const slAddName = document.getElementById("sl-add-name");
+const slAutocomplete = document.getElementById("sl-autocomplete");
+
+if (slAddName && slAutocomplete) {
+  const suggestions = JSON.parse(slAddName.dataset.suggestions || "[]");
+
+  slAddName.addEventListener("input", () => {
+    const query = slAddName.value.trim().toLowerCase();
+    slAutocomplete.innerHTML = "";
+
+    if (!query) {
+      slAutocomplete.classList.remove("open");
+      return;
+    }
+
+    const matches = suggestions
+      .filter((s) => s.toLowerCase().startsWith(query))
+      .slice(0, 5);
+
+    if (matches.length === 0) {
+      slAutocomplete.classList.remove("open");
+      return;
+    }
+
+    matches.forEach((match) => {
+      const item = document.createElement("div");
+      item.className = "sl-autocomplete-item";
+      item.textContent = match;
+      item.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        slAddName.value = match;
+        slAutocomplete.classList.remove("open");
+        slAutocomplete.innerHTML = "";
+      });
+      slAutocomplete.appendChild(item);
+    });
+
+    slAutocomplete.classList.add("open");
+  });
+
+  slAddName.addEventListener("blur", () => {
+    setTimeout(() => {
+      slAutocomplete.classList.remove("open");
+    }, 150);
+  });
+}

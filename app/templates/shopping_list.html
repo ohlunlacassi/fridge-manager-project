@@ -61,8 +61,10 @@ total > 0 else 0 %} {# ── Hero ── #}
     <input
       type="text"
       name="name"
+      id="sl-add-name"
       placeholder="What do you need?"
       autocomplete="off"
+      data-suggestions="{{ suggestion_names | tojson }}"
     />
     <div class="sl-qty-wrap">
       <input
@@ -83,6 +85,7 @@ total > 0 else 0 %} {# ── Hero ── #}
         <option value="pack">pack</option>
       </select>
     </div>
+    <div class="sl-autocomplete" id="sl-autocomplete"></div>
   </div>
   <button type="submit" class="btn btn-primary sl-add-btn">
     + Add to list

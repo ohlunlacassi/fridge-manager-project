@@ -409,6 +409,15 @@ def shopping_list():
     today = datetime.date.today()
     today_str = today.strftime("%A %-d %B").upper()
 
+    all_names = (
+        db.session.query(ShoppingItem.name)
+        .filter_by(user_id=current_user.id)
+        .distinct()
+        .all()
+    )
+
+    suggestion_names = [n[0] for n in all_names]
+
     return render_template(
         "shopping_list.html",
         items=items,
@@ -417,6 +426,7 @@ def shopping_list():
         today_date=today,
         budget=current_user.weekly_budget or 0.0,
         total_spent=get_total_spent(),
+        suggestion_names=suggestion_names,
     )
 
 
