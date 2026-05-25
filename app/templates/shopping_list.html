@@ -64,7 +64,6 @@ total > 0 else 0 %} {# ── Hero ── #}
       id="sl-add-name"
       placeholder="What do you need?"
       autocomplete="off"
-      data-suggestions="{{ suggestion_names | tojson }}"
     />
     <div class="sl-qty-wrap">
       <input
@@ -85,12 +84,18 @@ total > 0 else 0 %} {# ── Hero ── #}
         <option value="pack">pack</option>
       </select>
     </div>
-    <div class="sl-autocomplete" id="sl-autocomplete"></div>
   </div>
+  <div class="sl-autocomplete" id="sl-autocomplete"></div>
   <button type="submit" class="btn btn-primary sl-add-btn">
     + Add to list
   </button>
 </form>
+
+<ul id="sl-suggestions-data" style="display: none">
+  {% for name in suggestion_names %}
+  <li>{{ name }}</li>
+  {% endfor %}
+</ul>
 
 {# ── Filter tabs + Clear button ── #}
 <div class="sl-toolbar">

@@ -716,7 +716,9 @@ const slAddName = document.getElementById("sl-add-name");
 const slAutocomplete = document.getElementById("sl-autocomplete");
 
 if (slAddName && slAutocomplete) {
-  const suggestions = JSON.parse(slAddName.dataset.suggestions || "[]");
+  const suggestions = [
+    ...document.querySelectorAll("#sl-suggestions-data li"),
+  ].map((li) => li.textContent.trim());
 
   slAddName.addEventListener("input", () => {
     const query = slAddName.value.trim().toLowerCase();
@@ -736,16 +738,52 @@ if (slAddName && slAutocomplete) {
       return;
     }
 
+    // Position dropdown under input
+    const rect = slAddName.getBoundingClientRect();
+    slAutocomplete.style.position = "fixed";
+    slAutocomplete.style.top = `${rect.bottom + 12}px`;
+    slAutocomplete.style.left = `${rect.left}px`;
+    slAutocomplete.style.width = `${rect.width}px`;
+
     matches.forEach((match) => {
       const item = document.createElement("div");
       item.className = "sl-autocomplete-item";
-      item.textContent = match;
-      item.addEventListener("mousedown", (e) => {
+
+      const label = document.createElement("span");
+      label.textContent = match;
+      label.style.flex = "1";
+      label.addEventListener("mousedown", (e) => {
         e.preventDefault();
         slAddName.value = match;
         slAutocomplete.classList.remove("open");
         slAutocomplete.innerHTML = "";
       });
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "×";
+      deleteBtn.className = "sl-autocomplete-delete";
+      deleteBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        fetch("/shopping-list/suggestion/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: match }),
+        }).then(() => {
+          item.remove();
+          // Remove from suggestions array
+          const idx = suggestions.indexOf(match);
+          if (idx > -1) suggestions.splice(idx, 1);
+          if (slAutocomplete.children.length === 0) {
+            slAutocomplete.classList.remove("open");
+          }
+        });
+      });
+
+      item.style.display = "flex";
+      item.style.alignItems = "center";
+      item.appendChild(label);
+      item.appendChild(deleteBtn);
       slAutocomplete.appendChild(item);
     });
 
