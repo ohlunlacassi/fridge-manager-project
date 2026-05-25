@@ -117,12 +117,12 @@ def test_expiry_status_expires_today(app):
 
 
 def test_expiry_status_no_date(app):
-    """Ingredient with no expiry date returns 'fresh'."""
+    """Ingredient with no expiry date returns 'none'."""
     user = make_user()
     ingredient = Ingredient(
         user_id=user.id, name="Salt", quantity=500.0, unit="g", category="Condiments"
     )
-    assert ingredient.expiry_status == "fresh"
+    assert ingredient.expiry_status == "none"
 
 
 # --- Expense ---
@@ -172,7 +172,8 @@ def test_shopping_item_linked_to_ingredient(app):
     db.session.add(ingredient)
     db.session.commit()
 
-    item = ShoppingItem(user_id=user.id, name="Eggs", ingredient_id=ingredient.id)
+    item = ShoppingItem(user_id=user.id, name="Eggs",
+                        ingredient_id=ingredient.id)
     db.session.add(item)
     db.session.commit()
 
