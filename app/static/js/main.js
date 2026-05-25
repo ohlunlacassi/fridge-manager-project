@@ -3,6 +3,13 @@ const passwordInput = document.getElementById("password");
 const confirmInput = document.getElementById("confirm_password");
 const confirmError = document.getElementById("confirm-error");
 
+// ── Restock modal ──
+let pendingRestockId = null;
+let pendingRestockQty = 0;
+const slRestockOverlay = document.getElementById("sl-restock-overlay");
+const slRestockOk = document.getElementById("sl-restock-ok");
+const slRestockCancel = document.getElementById("sl-restock-cancel");
+
 function validatePasswords() {
   if (!passwordInput || !confirmInput) return;
   const password = passwordInput.value;
@@ -458,6 +465,18 @@ function doToggle(btn, price = "") {
           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
           stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
         item.classList.add("sl-item--done");
+
+        // Show restock prompt if linked to ingredient
+        const ingredientId = item.dataset.ingredientId;
+        if (ingredientId) {
+          const qtyEl = item.querySelector(".sl-qty-val");
+          const qtyText = qtyEl ? qtyEl.textContent.trim() : "1";
+          pendingRestockId = ingredientId;
+          pendingRestockQty = parseFloat(qtyText.split(" ")[0]) || 1;
+          const msgEl = document.getElementById("sl-restock-msg");
+          if (msgEl) msgEl.textContent = `Add ${qtyText} to your inventory?`;
+          if (slRestockOverlay) slRestockOverlay.classList.add("open");
+        }
         item.dataset.filter = "done";
 
         if (price && parseFloat(price) > 0) {
@@ -627,3 +646,36 @@ document.addEventListener("click", () => {
   if (avatarDropdown) avatarDropdown.classList.remove("open");
   if (sortDropdown) sortDropdown.style.display = "none";
 });
+
+if (slRestockOverlay) {
+  slRestockOverlay.addEventListener("click", (e) => {
+    if (e.target === slRestockOverlay) {
+      slRestockOverlay.classList.remove("open");
+      pendingRestockId = null;
+      pendingRestockQty = 0;
+    }
+  });
+}
+
+if (slRestockOk) {
+  slRestockOk.addEventListener("click", () => {
+    if (pendingRestockId) {
+      fetch(`/ingredient/${pendingRestockId}/restock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity: pendingRestockQty }),
+      });
+    }
+    slRestockOverlay.classList.remove("open");
+    pendingRestockId = null;
+    pendingRestockQty = 0;
+  });
+}
+
+if (slRestockCancel) {
+  slRestockCancel.addEventListener("click", () => {
+    slRestockOverlay.classList.remove("open");
+    pendingRestockId = null;
+    pendingRestockQty = 0;
+  });
+}

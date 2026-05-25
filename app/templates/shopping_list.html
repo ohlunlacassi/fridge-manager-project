@@ -122,6 +122,7 @@ total > 0 else 0 %} {# ── Hero ── #}
           class="sl-item {% if item.is_checked %}sl-item--done{% endif %}"
           data-id="{{ item.id }}"
           data-filter="{{ 'done' if item.is_checked else 'tobuy' }}"
+          data-ingredient-id="{{ item.ingredient_id or '' }}"
         >
           {# Checkbox #}
           <button
@@ -557,6 +558,23 @@ total > 0 else 0 %} {# ── Hero ── #}
         style="background: #7be495; color: #111"
       >
         Save
+      </button>
+    </div>
+  </div>
+</div>
+
+{# ── Restock modal ── #}
+<div class="sl-confirm-overlay" id="sl-restock-overlay">
+  <div class="sl-confirm-modal">
+    <p class="sl-confirm-msg" id="sl-restock-msg">Add to your inventory?</p>
+    <div class="sl-confirm-actions">
+      <button class="sl-confirm-cancel" id="sl-restock-cancel">No</button>
+      <button
+        class="sl-confirm-ok"
+        id="sl-restock-ok"
+        style="background: #7be495; color: #111"
+      >
+        Yes, add
       </button>
     </div>
   </div>

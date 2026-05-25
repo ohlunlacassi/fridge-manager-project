@@ -235,6 +235,28 @@ def ingredient_delete(id: int):
     return redirect(url_for('main.index'))
 
 
+@main.route("/ingredient/<int:id>/restock", methods=["POST"])
+@login_required
+def ingredient_restock(id: int):
+    ingredient = db.session.get(Ingredient, id)
+    if ingredient is None:
+        abort(404)
+    if ingredient.user_id != current_user.id:
+        abort(403)
+
+    data = request.get_json(silent=True) or {}
+    try:
+        quantity = float(data.get("quantity", 0))
+        if quantity <= 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        return {"error": "Invalid quantity"}, 400
+
+    ingredient.quantity += quantity
+    db.session.commit()
+    return {"quantity": ingredient.quantity}, 200
+
+
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
