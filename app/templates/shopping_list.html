@@ -332,15 +332,8 @@ total > 0 else 0 %} {# ── Hero ── #}
       data-budget="{{ budget }}"
       data-spent="{{ total_spent }}"
     >
-      <div
-        class="sl-list-header"
-        style="
-          padding: 0 0 0.75rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          margin-bottom: 0.75rem;
-        "
-      >
-        <span class="sl-budget-label" style="margin: 0">WEEKLY BUDGET</span>
+      <div class="sl-list-header sl-budget-header">
+        <span class="sl-budget-label">WEEKLY BUDGET</span>
         <form method="POST" action="{{ url_for('main.clear_budget') }}">
           <button type="submit" class="sl-clear-btn">Clear budget</button>
         </form>
@@ -481,25 +474,8 @@ total > 0 else 0 %} {# ── Hero ── #}
 <div class="sl-confirm-overlay" id="sl-price-overlay">
   <div class="sl-confirm-modal">
     <p class="sl-confirm-msg" id="sl-price-msg">How much did you pay?</p>
-    <div
-      style="
-        display: flex;
-        align-items: center;
-        border: 1.5px solid #e5e5e5;
-        border-radius: 8px;
-        margin-top: 0.5rem;
-        overflow: hidden;
-      "
-    >
-      <span
-        style="
-          padding: 0.5rem 0.75rem;
-          color: #999;
-          font-size: 1rem;
-          border-right: 1.5px solid #e5e5e5;
-        "
-        >€</span
-      >
+    <div class="sl-price-input-wrap">
+      <span class="sl-price-currency">€</span>
       <input
         type="number"
         id="sl-price-field"
@@ -507,16 +483,12 @@ total > 0 else 0 %} {# ── Hero ── #}
         min="0.01"
         step="0.01"
         class="sl-price-modal-input"
-        style="margin-top: 0; border: none; border-radius: 0"
       />
     </div>
-    <div class="sl-confirm-actions" style="margin-top: 1rem">
+    <p id="sl-price-error" class="sl-price-error"></p>
+    <div class="sl-confirm-actions sl-confirm-actions--spaced">
       <button class="sl-confirm-cancel" id="sl-price-cancel">Cancel</button>
-      <button
-        class="sl-confirm-ok"
-        id="sl-price-save"
-        style="background: #7be495; color: #111"
-      >
+      <button class="sl-confirm-ok sl-confirm-ok--green" id="sl-price-save">
         Save & check off
       </button>
     </div>
@@ -527,25 +499,8 @@ total > 0 else 0 %} {# ── Hero ── #}
 <div class="sl-confirm-overlay" id="sl-edit-price-overlay">
   <div class="sl-confirm-modal">
     <p class="sl-confirm-msg" id="sl-edit-price-msg">Edit price</p>
-    <div
-      style="
-        display: flex;
-        align-items: center;
-        border: 1.5px solid #e5e5e5;
-        border-radius: 8px;
-        margin-top: 0.5rem;
-        overflow: hidden;
-      "
-    >
-      <span
-        style="
-          padding: 0.5rem 0.75rem;
-          color: #999;
-          font-size: 1rem;
-          border-right: 1.5px solid #e5e5e5;
-        "
-        >€</span
-      >
+    <div class="sl-price-input-wrap">
+      <span class="sl-price-currency">€</span>
       <input
         type="number"
         id="sl-edit-price-field"
@@ -553,17 +508,15 @@ total > 0 else 0 %} {# ── Hero ── #}
         min="0.01"
         step="0.01"
         class="sl-price-modal-input"
-        style="margin-top: 0; border: none; border-radius: 0"
       />
     </div>
-    <div class="sl-confirm-actions" style="margin-top: 1rem">
+    <div class="sl-confirm-actions sl-confirm-actions--spaced">
       <button class="sl-confirm-cancel" id="sl-edit-price-cancel">
         Cancel
       </button>
       <button
-        class="sl-confirm-ok"
+        class="sl-confirm-ok sl-confirm-ok--green"
         id="sl-edit-price-save"
-        style="background: #7be495; color: #111"
       >
         Save
       </button>
@@ -577,11 +530,7 @@ total > 0 else 0 %} {# ── Hero ── #}
     <p class="sl-confirm-msg" id="sl-restock-msg">Add to your inventory?</p>
     <div class="sl-confirm-actions">
       <button class="sl-confirm-cancel" id="sl-restock-cancel">No</button>
-      <button
-        class="sl-confirm-ok"
-        id="sl-restock-ok"
-        style="background: #7be495; color: #111"
-      >
+      <button class="sl-confirm-ok sl-confirm-ok--green" id="sl-restock-ok">
         Yes, add
       </button>
     </div>

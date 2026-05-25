@@ -532,6 +532,17 @@ document.querySelectorAll(".sl-check").forEach((btn) => {
 if (slPriceSave) {
   slPriceSave.addEventListener("click", () => {
     const price = slPriceField ? slPriceField.value : "";
+
+    // Validate: reject negative prices
+    if (price && parseFloat(price) < 0) {
+      const errorEl = document.getElementById("sl-price-error");
+      if (errorEl) errorEl.textContent = "Price must be a positive number.";
+      return;
+    }
+
+    const errorEl = document.getElementById("sl-price-error");
+    if (errorEl) errorEl.textContent = "";
+
     slPriceOverlay.classList.remove("open");
     if (pendingToggleBtn) doToggle(pendingToggleBtn, price);
     pendingToggleBtn = null;
