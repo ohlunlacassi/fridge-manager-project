@@ -319,7 +319,7 @@ document.querySelectorAll(".sl-qty-ctrl").forEach((btn) => {
   });
 });
 
-// ── Shopping list: budget bar (US17) ──
+// ── Shopping list: budget bar ──
 function updateBudgetBar() {
   const card = document.querySelector(".sl-budget-card");
   if (!card) return;
@@ -361,6 +361,323 @@ const slEditPriceCancel = document.getElementById("sl-edit-price-cancel");
 const PENCIL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
 
 function attachEditPriceListener(btn) {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    editPriceItemId = btn.dataset.id;
+    if (slEditPriceField) slEditPriceField.value = btn.dataset.price;
+    if (slEditPriceOverlay) slEditPriceOverlay.classList.add("open");
+    setTimeout(() => slEditPriceField && slEditPriceField.focus(), 100);
+  });
+}
+
+document
+  .querySelectorAll(".sl-edit-price-btn")
+  .forEach(attachEditPriceListener);
+
+if (slEditPriceSave) {
+  slEditPriceSave.addEventListener("click", () => {
+    const price = slEditPriceField ? slEditPriceField.value : "";
+    if (!price || parseFloat(price) <= 0) return;
+
+    fetch(`/shopping-list/edit-price/${editPriceItemId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ price }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const btn = document.querySelector(
+          `.sl-edit-price-btn[data-id="${editPriceItemId}"]`,
+        );
+        if (btn) {
+          btn.dataset.price = data.price;
+          const priceEl = btn.closest(".sl-item-price");
+          if (priceEl) {
+            priceEl.childNodes[0].textContent = `€${parseFloat(data.price).toFixed(2)} `;
+          }
+        }
+        const spentEl = document.querySelector(".sl-budget-spent");
+        if (spentEl && data.total_spent !== undefined) {
+          spentEl.textContent = `spent €${data.total_spent.toFixed(2)}`;
+        }
+        updateBudgetBar();
+        slEditPriceOverlay.classList.remove("open");
+        editPriceItemId = null;
+      });
+  });
+}
+
+if (slEditPriceCancel) {
+  slEditPriceCancel.addEventListener("click", () => {
+    slEditPriceOverlay.classList.remove("open");
+    editPriceItemId = null;
+  });
+}
+
+if (slEditPriceOverlay) {
+  slEditPriceOverlay.addEventListener("click", (e) => {
+    if (e.target === slEditPriceOverlay) {
+      slEditPriceOverlay.classList.remove("open");
+      editPriceItemId = null;
+    }
+  });
+}
+
+if (slEditPriceField) {
+  slEditPriceField.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") slEditPriceSave && slEditPriceSave.click();
+  });
+}
+
+// ── Shopping list: toggle check with price modal ──
+let pendingToggleBtn = null;
+const slPriceOverlay = document.getElementById("sl-price-overlay");
+const slPriceField = document.getElementById("sl-price-field");
+const slPriceSave = document.getElementById("sl-price-save");
+const slPriceCancel = document.getElementById("sl-price-cancel");
+
+function doToggle(btn, price = "") {
+  const id = btn.dataset.id;
+  fetch(`/shopping-list/toggle/${id}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ price }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      const spentEl = document.querySelector(".sl-budget-spent");
+      if (spentEl && data.total_spent !== undefined) {
+        spentEl.textContent = `spent €${data.total_spent.toFixed(2)}`;
+      }
+
+      const budgetCard = document.querySelector(".sl-budget-card");
+      if (budgetCard && data.total_spent !== undefined) {
+        budgetCard.dataset.spent = data.total_spent;
+      }
+
+      const item = btn.closest(".sl-item");
+      const priceEl = item.querySelector(".sl-item-price");
+
+      if (data.is_checked) {
+        btn.classList.add("sl-check--checked");
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+          stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+        item.classList.add("sl-item--done");
+        item.dataset.filter = "done";
+
+        // Show restock prompt for ALL checked items
+        const qtyEl = item.querySelector(".sl-qty-val");
+        const qtyText = qtyEl ? qtyEl.textContent.trim() : "1";
+        pendingRestockId = item.querySelector(".sl-item-name").textContent.trim();
+        pendingRestockQty = parseFloat(qtyText.split(" ")[0]) || 1;
+        const restockMsgEl = document.getElementById("sl-restock-msg");
+        if (restockMsgEl) restockMsgEl.textContent = `Add ${qtyText} to your inventory?`;
+        if (slRestockOverlay) slRestockOverlay.classList.add("open");
+
+        if (price && parseFloat(price) > 0) {
+          const nameEl = item.querySelector(".sl-item-name");
+          if (!priceEl) {
+            const span = document.createElement("span");
+            span.className = "sl-item-price";
+            span.innerHTML = `€${parseFloat(price).toFixed(2)} <button class="sl-edit-price-btn" data-id="${id}" data-price="${parseFloat(price).toFixed(2)}" aria-label="Edit price">${PENCIL_SVG}</button>`;
+            nameEl.after(span);
+            attachEditPriceListener(span.querySelector(".sl-edit-price-btn"));
+          } else {
+            priceEl.childNodes[0].textContent = `€${parseFloat(price).toFixed(2)} `;
+          }
+        }
+      } else {
+        btn.classList.remove("sl-check--checked");
+        btn.innerHTML = "";
+        item.classList.remove("sl-item--done");
+        item.dataset.filter = "tobuy";
+        if (priceEl) priceEl.remove();
+      }
+
+      updateShoppingProgress();
+      updateBudgetBar();
+    });
+}
+
+if (slPriceOverlay) {
+  slPriceOverlay.addEventListener("click", (e) => {
+    if (e.target === slPriceOverlay) {
+      slPriceOverlay.classList.remove("open");
+      pendingToggleBtn = null;
+    }
+  });
+}
+
+// ── Checkbox click ──
+document.querySelectorAll(".sl-check").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const item = btn.closest(".sl-item");
+    if (item.classList.contains("sl-item--done")) return;
+
+    pendingToggleBtn = btn;
+    if (slPriceField) slPriceField.value = "";
+    const itemName = item.querySelector(".sl-item-name").textContent;
+    const msgEl = document.getElementById("sl-price-msg");
+    if (msgEl)
+      msgEl.textContent = `How much did you pay for ${itemName}? (optional)`;
+    if (slPriceOverlay) slPriceOverlay.classList.add("open");
+    setTimeout(() => slPriceField && slPriceField.focus(), 100);
+  });
+});
+
+if (slPriceSave) {
+  slPriceSave.addEventListener("click", () => {
+    const price = slPriceField ? slPriceField.value : "";
+    slPriceOverlay.classList.remove("open");
+    if (pendingToggleBtn) doToggle(pendingToggleBtn, price);
+    pendingToggleBtn = null;
+  });
+}
+
+if (slPriceCancel) {
+  slPriceCancel.addEventListener("click", () => {
+    slPriceOverlay.classList.remove("open");
+    pendingToggleBtn = null;
+  });
+}
+
+if (slPriceField) {
+  slPriceField.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") slPriceSave && slPriceSave.click();
+  });
+}
+
+// ── Shopping list: progress update ──
+function updateShoppingProgress() {
+  const allItems = document.querySelectorAll(".sl-item");
+  const total = allItems.length;
+  const checked = document.querySelectorAll(".sl-item.sl-item--done").length;
+  const toBuy = total - checked;
+  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+
+  const numEl = document.querySelector(".sl-progress-num");
+  const totalEl = document.querySelector(".sl-progress-total");
+  const hintEl = document.querySelector(".sl-progress-hint");
+  const barEl = document.querySelector(".sl-progress-bar");
+  const pctEl = document.querySelector(".sl-progress-pct");
+
+  if (numEl) numEl.childNodes[0].textContent = checked;
+  if (totalEl) totalEl.textContent = `/${total}`;
+  if (hintEl)
+    hintEl.textContent = `${toBuy} item${toBuy !== 1 ? "s" : ""} to go ↗`;
+  if (barEl) barEl.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+
+  document.querySelectorAll(".sl-tab").forEach((tab) => {
+    if (tab.dataset.filter === "all") tab.textContent = `All · ${total}`;
+    if (tab.dataset.filter === "tobuy") tab.textContent = `To buy · ${toBuy}`;
+    if (tab.dataset.filter === "done") tab.textContent = `Done · ${checked}`;
+  });
+
+  const clearBtn = document.querySelector(".sl-clear-btn");
+  if (clearBtn) {
+    if (checked > 0) clearBtn.classList.remove("sl-clear-disabled");
+    else clearBtn.classList.add("sl-clear-disabled");
+  }
+}
+
+// ── Shopping list: delete with custom modal ──
+let pendingDeleteForm = null;
+const slConfirmOverlay = document.getElementById("sl-confirm-overlay");
+const slConfirmOk = document.getElementById("sl-confirm-ok");
+const slConfirmCancel = document.getElementById("sl-confirm-cancel");
+
+document.querySelectorAll(".sl-item-delete-form").forEach((form) => {
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    pendingDeleteForm = form;
+    if (slConfirmOverlay) slConfirmOverlay.classList.add("open");
+  });
+});
+
+if (slConfirmOk) {
+  slConfirmOk.addEventListener("click", () => {
+    if (pendingDeleteForm) pendingDeleteForm.submit();
+    slConfirmOverlay.classList.remove("open");
+  });
+}
+
+if (slConfirmCancel) {
+  slConfirmCancel.addEventListener("click", () => {
+    pendingDeleteForm = null;
+    slConfirmOverlay.classList.remove("open");
+  });
+}
+
+// ── Shopping list: filter tabs ──
+const slTabs = document.querySelectorAll(".sl-tab");
+const slItems = document.querySelectorAll(".sl-item");
+
+slTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    slTabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    const filter = tab.dataset.filter;
+    slItems.forEach((item) => {
+      if (filter === "all" || item.dataset.filter === filter) {
+        item.classList.remove("sl-item--hidden");
+      } else {
+        item.classList.add("sl-item--hidden");
+      }
+    });
+  });
+});
+
+// ── Week card collapse/expand ──
+document.querySelectorAll('[data-toggle="week"]').forEach((header) => {
+  header.addEventListener("click", () => {
+    header.closest(".week-card").classList.toggle("collapsed");
+  });
+});
+
+// ── Close dropdowns on outside click ──
+document.addEventListener("click", () => {
+  if (avatarDropdown) avatarDropdown.classList.remove("open");
+  if (sortDropdown) sortDropdown.style.display = "none";
+});
+
+// ── Restock modal handlers ──
+if (slRestockOverlay) {
+  slRestockOverlay.addEventListener("click", (e) => {
+    if (e.target === slRestockOverlay) {
+      slRestockOverlay.classList.remove("open");
+      pendingRestockId = null;
+      pendingRestockQty = 0;
+    }
+  });
+}
+
+if (slRestockOk) {
+  slRestockOk.addEventListener("click", () => {
+    if (pendingRestockId) {
+      fetch(`/ingredient/restock-by-name`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: pendingRestockId,
+          quantity: pendingRestockQty,
+        }),
+      });
+    }
+    slRestockOverlay.classList.remove("open");
+    pendingRestockId = null;
+    pendingRestockQty = 0;
+  });
+}
+
+if (slRestockCancel) {
+  slRestockCancel.addEventListener("click", () => {
+    slRestockOverlay.classList.remove("open");
+    pendingRestockId = null;
+    pendingRestockQty = 0;
+  });
+}function attachEditPriceListener(btn) {
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
     editPriceItemId = btn.dataset.id;
@@ -466,42 +783,49 @@ function doToggle(btn, price = "") {
           stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
         item.classList.add("sl-item--done");
 
-        // Show restock prompt if linked to ingredient
-        const ingredientId = item.dataset.ingredientId;
-        if (ingredientId) {
-          const qtyEl = item.querySelector(".sl-qty-val");
-          const qtyText = qtyEl ? qtyEl.textContent.trim() : "1";
-          pendingRestockId = ingredientId;
-          pendingRestockQty = parseFloat(qtyText.split(" ")[0]) || 1;
-          const msgEl = document.getElementById("sl-restock-msg");
-          if (msgEl) msgEl.textContent = `Add ${qtyText} to your inventory?`;
-          if (slRestockOverlay) slRestockOverlay.classList.add("open");
-        }
-        item.dataset.filter = "done";
+        // Show restock prompt for ALL checked items
+  const qtyEl = item.querySelector(".sl-qty-val");
+  const qtyText = qtyEl ? qtyEl.textContent.trim() : "1";
+  pendingRestockId = item.querySelector(".sl-item-name").textContent.trim();
+  pendingRestockQty = parseFloat(qtyText.split(" ")[0]) || 1;
+  const msgEl = document.getElementById("sl-restock-msg");
+  if (msgEl) msgEl.textContent = `Add ${qtyText} to your inventory?`;
+  if (slRestockOverlay) slRestockOverlay.classList.add("open");
+}if (data.is_checked) {
+  btn.classList.add("sl-check--checked");
+  btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+    stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+  item.classList.add("sl-item--done");
+  item.dataset.filter = "done";
 
-        if (price && parseFloat(price) > 0) {
-          const nameEl = item.querySelector(".sl-item-name");
-          if (!priceEl) {
-            const span = document.createElement("span");
-            span.className = "sl-item-price";
-            span.innerHTML = `€${parseFloat(price).toFixed(2)} <button class="sl-edit-price-btn" data-id="${id}" data-price="${parseFloat(price).toFixed(2)}" aria-label="Edit price">${PENCIL_SVG}</button>`;
-            nameEl.after(span);
-            attachEditPriceListener(span.querySelector(".sl-edit-price-btn"));
-          } else {
-            priceEl.childNodes[0].textContent = `€${parseFloat(price).toFixed(2)} `;
-          }
-        }
-      } else {
-        btn.classList.remove("sl-check--checked");
-        btn.innerHTML = "";
-        item.classList.remove("sl-item--done");
-        item.dataset.filter = "tobuy";
-        if (priceEl) priceEl.remove();
-      }
+  // Show restock prompt for ALL checked items
+  const qtyEl = item.querySelector(".sl-qty-val");
+  const qtyText = qtyEl ? qtyEl.textContent.trim() : "1";
+  pendingRestockId = item.querySelector(".sl-item-name").textContent.trim();
+  pendingRestockQty = parseFloat(qtyText.split(" ")[0]) || 1;
+  const msgEl = document.getElementById("sl-restock-msg");
+  if (msgEl) msgEl.textContent = `Add ${qtyText} to your inventory?`;
+  if (slRestockOverlay) slRestockOverlay.classList.add("open");
 
-      updateShoppingProgress();
-      updateBudgetBar();
-    });
+  if (price && parseFloat(price) > 0) {
+    const nameEl = item.querySelector(".sl-item-name");
+    if (!priceEl) {
+      const span = document.createElement("span");
+      span.className = "sl-item-price";
+      span.innerHTML = `€${parseFloat(price).toFixed(2)} <button class="sl-edit-price-btn" data-id="${id}" data-price="${parseFloat(price).toFixed(2)}" aria-label="Edit price">${PENCIL_SVG}</button>`;
+      nameEl.after(span);
+      attachEditPriceListener(span.querySelector(".sl-edit-price-btn"));
+    } else {
+      priceEl.childNodes[0].textContent = `€${parseFloat(price).toFixed(2)} `;
+    }
+  }
+} else {
+  btn.classList.remove("sl-check--checked");
+  btn.innerHTML = "";
+  item.classList.remove("sl-item--done");
+  item.dataset.filter = "tobuy";
+  if (priceEl) priceEl.remove();
 }
 
 // Price overlay — close on background click
@@ -660,10 +984,193 @@ if (slRestockOverlay) {
 if (slRestockOk) {
   slRestockOk.addEventListener("click", () => {
     if (pendingRestockId) {
-      fetch(`/ingredient/${pendingRestockId}/restock`, {
+      fetch(`/ingredient/restock-by-name`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity: pendingRestockQty }),
+        body: JSON.stringify({
+          name: pendingRestockId,
+          quantity: pendingRestockQty
+        }),
+      });
+    }
+    slRestockOverlay.classList.remove("open");
+    pendingRestockId = null;
+    pendingRestockQty = 0;
+  });
+}
+
+if (slRestockCancel) {
+  slRestockCancel.addEventListener("click", () => {
+    slRestockOverlay.classList.remove("open");
+    pendingRestockId = null;
+    pendingRestockQty = 0;
+  });
+}
+
+
+// Price overlay — close on background click
+if (slPriceOverlay) {
+  slPriceOverlay.addEventListener("click", (e) => {
+    if (e.target === slPriceOverlay) {
+      slPriceOverlay.classList.remove("open");
+      pendingToggleBtn = null;
+    }
+  });
+}
+
+// Checkbox click
+document.querySelectorAll(".sl-check").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const item = btn.closest(".sl-item");
+    if (item.classList.contains("sl-item--done")) return;
+
+    pendingToggleBtn = btn;
+    if (slPriceField) slPriceField.value = "";
+    const itemName = item.querySelector(".sl-item-name").textContent;
+    const msgEl = document.getElementById("sl-price-msg");
+    if (msgEl)
+      msgEl.textContent = `How much did you pay for ${itemName}? (optional)`;
+    if (slPriceOverlay) slPriceOverlay.classList.add("open");
+    setTimeout(() => slPriceField && slPriceField.focus(), 100);
+  });
+});
+
+if (slPriceSave) {
+  slPriceSave.addEventListener("click", () => {
+    const price = slPriceField ? slPriceField.value : "";
+    slPriceOverlay.classList.remove("open");
+    if (pendingToggleBtn) doToggle(pendingToggleBtn, price);
+    pendingToggleBtn = null;
+  });
+}
+
+if (slPriceCancel) {
+  slPriceCancel.addEventListener("click", () => {
+    slPriceOverlay.classList.remove("open");
+    pendingToggleBtn = null;
+  });
+}
+
+if (slPriceField) {
+  slPriceField.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") slPriceSave && slPriceSave.click();
+  });
+}
+
+// ── Shopping list: progress update ──
+function updateShoppingProgress() {
+  const allItems = document.querySelectorAll(".sl-item");
+  const total = allItems.length;
+  const checked = document.querySelectorAll(".sl-item.sl-item--done").length;
+  const toBuy = total - checked;
+  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+
+  const numEl = document.querySelector(".sl-progress-num");
+  const totalEl = document.querySelector(".sl-progress-total");
+  const hintEl = document.querySelector(".sl-progress-hint");
+  const barEl = document.querySelector(".sl-progress-bar");
+  const pctEl = document.querySelector(".sl-progress-pct");
+
+  if (numEl) numEl.childNodes[0].textContent = checked;
+  if (totalEl) totalEl.textContent = `/${total}`;
+  if (hintEl)
+    hintEl.textContent = `${toBuy} item${toBuy !== 1 ? "s" : ""} to go ↗`;
+  if (barEl) barEl.style.width = `${pct}%`;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+
+  document.querySelectorAll(".sl-tab").forEach((tab) => {
+    if (tab.dataset.filter === "all") tab.textContent = `All · ${total}`;
+    if (tab.dataset.filter === "tobuy") tab.textContent = `To buy · ${toBuy}`;
+    if (tab.dataset.filter === "done") tab.textContent = `Done · ${checked}`;
+  });
+
+  const clearBtn = document.querySelector(".sl-clear-btn");
+  if (clearBtn) {
+    if (checked > 0) clearBtn.classList.remove("sl-clear-disabled");
+    else clearBtn.classList.add("sl-clear-disabled");
+  }
+}
+
+// ── Shopping list: delete with custom modal ──
+let pendingDeleteForm = null;
+const slConfirmOverlay = document.getElementById("sl-confirm-overlay");
+const slConfirmOk = document.getElementById("sl-confirm-ok");
+const slConfirmCancel = document.getElementById("sl-confirm-cancel");
+
+document.querySelectorAll(".sl-item-delete-form").forEach((form) => {
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    pendingDeleteForm = form;
+    if (slConfirmOverlay) slConfirmOverlay.classList.add("open");
+  });
+});
+
+if (slConfirmOk) {
+  slConfirmOk.addEventListener("click", () => {
+    if (pendingDeleteForm) pendingDeleteForm.submit();
+    slConfirmOverlay.classList.remove("open");
+  });
+}
+
+if (slConfirmCancel) {
+  slConfirmCancel.addEventListener("click", () => {
+    pendingDeleteForm = null;
+    slConfirmOverlay.classList.remove("open");
+  });
+}
+
+// ── Shopping list: filter tabs ──
+const slTabs = document.querySelectorAll(".sl-tab");
+const slItems = document.querySelectorAll(".sl-item");
+
+slTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    slTabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    const filter = tab.dataset.filter;
+    slItems.forEach((item) => {
+      if (filter === "all" || item.dataset.filter === filter) {
+        item.classList.remove("sl-item--hidden");
+      } else {
+        item.classList.add("sl-item--hidden");
+      }
+    });
+  });
+});
+
+// ── Week card collapse/expand ──
+document.querySelectorAll('[data-toggle="week"]').forEach((header) => {
+  header.addEventListener("click", () => {
+    header.closest(".week-card").classList.toggle("collapsed");
+  });
+});
+
+// ── Close dropdowns on outside click ──
+document.addEventListener("click", () => {
+  if (avatarDropdown) avatarDropdown.classList.remove("open");
+  if (sortDropdown) sortDropdown.style.display = "none";
+});
+
+if (slRestockOverlay) {
+  slRestockOverlay.addEventListener("click", (e) => {
+    if (e.target === slRestockOverlay) {
+      slRestockOverlay.classList.remove("open");
+      pendingRestockId = null;
+      pendingRestockQty = 0;
+    }
+  });
+}
+
+if (slRestockOk) {
+  slRestockOk.addEventListener("click", () => {
+    if (pendingRestockId) {
+      fetch(`/ingredient/restock-by-name`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: pendingRestockId,
+          quantity: pendingRestockQty
+        }),
       });
     }
     slRestockOverlay.classList.remove("open");

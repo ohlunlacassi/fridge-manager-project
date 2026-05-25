@@ -235,16 +235,11 @@ def ingredient_delete(id: int):
     return redirect(url_for('main.index'))
 
 
-@main.route("/ingredient/<int:id>/restock", methods=["POST"])
+@main.route("/ingredient/restock-by-name", methods=["POST"])
 @login_required
-def ingredient_restock(id: int):
-    ingredient = db.session.get(Ingredient, id)
-    if ingredient is None:
-        abort(404)
-    if ingredient.user_id != current_user.id:
-        abort(403)
-
+def ingredient_restock_by_name():
     data = request.get_json(silent=True) or {}
+    name = data.get("name", "").strip()
     try:
         quantity = float(data.get("quantity", 0))
         if quantity <= 0:
@@ -252,9 +247,28 @@ def ingredient_restock(id: int):
     except (ValueError, TypeError):
         return {"error": "Invalid quantity"}, 400
 
-    ingredient.quantity += quantity
+    # Case-insensitive match
+    ingredient = Ingredient.query.filter(
+        Ingredient.user_id == current_user.id,
+        db.func.lower(Ingredient.name) == name.lower()
+    ).first()
+
+    if ingredient:
+        ingredient.quantity += quantity
+        db.session.commit()
+        return {"status": "updated", "quantity": ingredient.quantity}, 200
+
+    # Not found — create new with defaults
+    new_ingredient = Ingredient(
+        user_id=current_user.id,
+        name=name,
+        quantity=quantity,
+        unit="pcs",
+        category="Other",
+    )
+    db.session.add(new_ingredient)
     db.session.commit()
-    return {"quantity": ingredient.quantity}, 200
+    return {"status": "created", "quantity": quantity}, 200
 
 
 @main.route("/register", methods=["GET", "POST"])
