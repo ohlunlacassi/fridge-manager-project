@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from collections import defaultdict
 
 from app import db
-from app.models import User, Ingredient, ShoppingItem, Expense
+from app.models import User, Ingredient, ShoppingItem, Expense, ShoppingHistory
 
 main = Blueprint("main", __name__)
 
@@ -231,7 +231,7 @@ def ingredient_delete(id: int):
     db.session.delete(ingredient)
     db.session.commit()
 
-    flash(f'"{ingredient.name}" has been removed.', 'success')
+    flash(f'"{name}" has been removed.', 'success')
     return redirect(url_for('main.index'))
 
 
@@ -247,7 +247,6 @@ def ingredient_restock_by_name():
     except (ValueError, TypeError):
         return {"error": "Invalid quantity"}, 400
 
-    # Case-insensitive match
     ingredient = Ingredient.query.filter(
         Ingredient.user_id == current_user.id,
         db.func.lower(Ingredient.name) == name.lower()
@@ -258,7 +257,6 @@ def ingredient_restock_by_name():
         db.session.commit()
         return {"status": "updated", "quantity": ingredient.quantity}, 200
 
-    # Not found — create new with defaults
     new_ingredient = Ingredient(
         user_id=current_user.id,
         name=name,
@@ -360,7 +358,7 @@ def logout():
     return redirect(url_for("main.login"))
 
 
-# ── Shopping List Routes (US11, US12, US14, US16) ──
+# ── Shopping List Routes ──
 
 @main.route("/shopping-list", methods=["GET", "POST"])
 @login_required
@@ -391,6 +389,15 @@ def shopping_list():
             ingredient_id=int(ingredient_id) if ingredient_id else None,
         )
         db.session.add(item)
+
+        # Save to history if not already there
+        existing_history = ShoppingHistory.query.filter(
+            ShoppingHistory.user_id == current_user.id,
+            db.func.lower(ShoppingHistory.name) == name.lower()
+        ).first()
+        if not existing_history:
+            db.session.add(ShoppingHistory(user_id=current_user.id, name=name))
+
         db.session.commit()
         return redirect(url_for("main.shopping_list"))
 
@@ -409,6 +416,14 @@ def shopping_list():
     today = datetime.date.today()
     today_str = today.strftime("%A %-d %B").upper()
 
+    # Autocomplete names from history
+    suggestion_names = [
+        h.name for h in ShoppingHistory.query
+        .filter_by(user_id=current_user.id)
+        .order_by(ShoppingHistory.name.asc())
+        .all()
+    ]
+
     return render_template(
         "shopping_list.html",
         items=items,
@@ -417,6 +432,7 @@ def shopping_list():
         today_date=today,
         budget=current_user.weekly_budget or 0.0,
         total_spent=get_total_spent(),
+        suggestion_names=suggestion_names,
     )
 
 
@@ -432,13 +448,11 @@ def shopping_list_toggle(id: int):
     item.is_checked = not item.is_checked
 
     if item.is_checked:
-        # Reset is_low_stock on linked ingredient
         if item.ingredient_id:
             ingredient = db.session.get(Ingredient, item.ingredient_id)
             if ingredient:
                 ingredient.is_low_stock = False
 
-        # Record expense if price provided
         data = request.get_json(silent=True) or {}
         price_str = str(data.get("price", "")).strip()
         if price_str:
@@ -458,7 +472,7 @@ def shopping_list_toggle(id: int):
             except ValueError:
                 pass
     else:
-        item.price = None  # reset ตอน uncheck
+        item.price = None
 
     db.session.commit()
     return {"is_checked": item.is_checked, "total_spent": get_total_spent()}, 200
@@ -607,6 +621,18 @@ def clear_budget():
     return redirect(url_for("main.shopping_list"))
 
 
+@main.route("/shopping-list/suggestion/delete", methods=["POST"])
+@login_required
+def shopping_list_delete_suggestion():
+    data = request.get_json(silent=True) or {}
+    name = data.get("name", "").strip()
+    ShoppingHistory.query.filter_by(
+        user_id=current_user.id, name=name
+    ).delete()
+    db.session.commit()
+    return {"status": "deleted"}, 200
+
+
 @main.route("/expense-history")
 @login_required
 def expense_history():
@@ -614,12 +640,10 @@ def expense_history():
         .order_by(Expense.year.desc(), Expense.week_number.desc(), Expense.date.desc())\
         .all()
 
-    # Group by (year, week_number)
     weeks: dict = defaultdict(list)
     for e in expenses:
         weeks[(e.year, e.week_number)].append(e)
 
-    # Sort weeks newest first, build list of dicts
     grouped = []
     for (year, week_num), entries in sorted(weeks.items(), reverse=True):
         total = sum(e.amount for e in entries)
