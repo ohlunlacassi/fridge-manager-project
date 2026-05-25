@@ -235,6 +235,67 @@ def ingredient_delete(id: int):
     return redirect(url_for('main.index'))
 
 
+@main.route("/ingredient/restock-by-name", methods=["POST"])
+@login_required
+def ingredient_restock_by_name():
+    data = request.get_json(silent=True) or {}
+    name = data.get("name", "").strip()
+    try:
+        quantity = float(data.get("quantity", 0))
+        if quantity <= 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        return {"error": "Invalid quantity"}, 400
+
+    # Case-insensitive match
+    ingredient = Ingredient.query.filter(
+        Ingredient.user_id == current_user.id,
+        db.func.lower(Ingredient.name) == name.lower()
+    ).first()
+
+    if ingredient:
+        ingredient.quantity += quantity
+        db.session.commit()
+        return {"status": "updated", "quantity": ingredient.quantity}, 200
+
+    # Not found — create new with defaults
+    new_ingredient = Ingredient(
+        user_id=current_user.id,
+        name=name,
+        quantity=quantity,
+        unit="pcs",
+        category="Other",
+    )
+    db.session.add(new_ingredient)
+    db.session.commit()
+    return {"status": "created", "quantity": quantity}, 200
+
+
+@main.route("/ingredient/reduce-by-name", methods=["POST"])
+@login_required
+def ingredient_reduce_by_name():
+    data = request.get_json(silent=True) or {}
+    name = data.get("name", "").strip()
+    try:
+        quantity = float(data.get("quantity", 0))
+        if quantity <= 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        return {"error": "Invalid quantity"}, 400
+
+    ingredient = Ingredient.query.filter(
+        Ingredient.user_id == current_user.id,
+        db.func.lower(Ingredient.name) == name.lower()
+    ).first()
+
+    if ingredient:
+        ingredient.quantity = max(0, ingredient.quantity - quantity)
+        db.session.commit()
+        return {"quantity": ingredient.quantity}, 200
+
+    return {"status": "not found"}, 200
+
+
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":

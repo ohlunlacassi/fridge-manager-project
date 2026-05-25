@@ -3,6 +3,13 @@ const passwordInput = document.getElementById("password");
 const confirmInput = document.getElementById("confirm_password");
 const confirmError = document.getElementById("confirm-error");
 
+// ── Restock modal ──
+let pendingRestockId = null;
+let pendingRestockQty = 0;
+const slRestockOverlay = document.getElementById("sl-restock-overlay");
+const slRestockOk = document.getElementById("sl-restock-ok");
+const slRestockCancel = document.getElementById("sl-restock-cancel");
+
 function validatePasswords() {
   if (!passwordInput || !confirmInput) return;
   const password = passwordInput.value;
@@ -312,7 +319,7 @@ document.querySelectorAll(".sl-qty-ctrl").forEach((btn) => {
   });
 });
 
-// ── Shopping list: budget bar (US17) ──
+// ── Shopping list: budget bar ──
 function updateBudgetBar() {
   const card = document.querySelector(".sl-budget-card");
   if (!card) return;
@@ -363,7 +370,6 @@ function attachEditPriceListener(btn) {
   });
 }
 
-// Attach to existing pencil buttons (server-rendered)
 document
   .querySelectorAll(".sl-edit-price-btn")
   .forEach(attachEditPriceListener);
@@ -460,6 +466,18 @@ function doToggle(btn, price = "") {
         item.classList.add("sl-item--done");
         item.dataset.filter = "done";
 
+        // Show restock prompt for ALL checked items
+        const qtyEl = item.querySelector(".sl-qty-val");
+        const qtyText = qtyEl ? qtyEl.textContent.trim() : "1";
+        pendingRestockId = item
+          .querySelector(".sl-item-name")
+          .textContent.trim();
+        pendingRestockQty = parseFloat(qtyText.split(" ")[0]) || 1;
+        const restockMsgEl = document.getElementById("sl-restock-msg");
+        if (restockMsgEl)
+          restockMsgEl.textContent = `Add ${qtyText} to your inventory?`;
+        if (slRestockOverlay) slRestockOverlay.classList.add("open");
+
         if (price && parseFloat(price) > 0) {
           const nameEl = item.querySelector(".sl-item-name");
           if (!priceEl) {
@@ -485,7 +503,6 @@ function doToggle(btn, price = "") {
     });
 }
 
-// Price overlay — close on background click
 if (slPriceOverlay) {
   slPriceOverlay.addEventListener("click", (e) => {
     if (e.target === slPriceOverlay) {
@@ -495,7 +512,7 @@ if (slPriceOverlay) {
   });
 }
 
-// Checkbox click
+// ── Checkbox click ──
 document.querySelectorAll(".sl-check").forEach((btn) => {
   btn.addEventListener("click", () => {
     const item = btn.closest(".sl-item");
@@ -578,13 +595,42 @@ document.querySelectorAll(".sl-item-delete-form").forEach((form) => {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     pendingDeleteForm = form;
+
+    const item = form.closest(".sl-item");
+    const isChecked = item && item.classList.contains("sl-item--done");
+    const confirmMsg = document.querySelector(".sl-confirm-msg");
+
+    if (isChecked && confirmMsg) {
+      const itemName = item.querySelector(".sl-item-name").textContent.trim();
+      confirmMsg.textContent = `Remove "${itemName}" from your list? This will also reduce it from your inventory.`;
+    } else if (confirmMsg) {
+      confirmMsg.textContent = "Remove this item from your list?";
+    }
+
     if (slConfirmOverlay) slConfirmOverlay.classList.add("open");
   });
 });
 
 if (slConfirmOk) {
   slConfirmOk.addEventListener("click", () => {
-    if (pendingDeleteForm) pendingDeleteForm.submit();
+    if (pendingDeleteForm) {
+      const item = pendingDeleteForm.closest(".sl-item");
+      const isChecked = item && item.classList.contains("sl-item--done");
+
+      if (isChecked) {
+        const itemName = item.querySelector(".sl-item-name").textContent.trim();
+        const qtyEl = item.querySelector(".sl-qty-val");
+        const qty = parseFloat(qtyEl ? qtyEl.textContent : "1") || 1;
+
+        fetch("/ingredient/reduce-by-name", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: itemName, quantity: qty }),
+        });
+      }
+
+      pendingDeleteForm.submit();
+    }
     slConfirmOverlay.classList.remove("open");
   });
 }
@@ -627,3 +673,40 @@ document.addEventListener("click", () => {
   if (avatarDropdown) avatarDropdown.classList.remove("open");
   if (sortDropdown) sortDropdown.style.display = "none";
 });
+
+// ── Restock modal handlers ──
+if (slRestockOverlay) {
+  slRestockOverlay.addEventListener("click", (e) => {
+    if (e.target === slRestockOverlay) {
+      slRestockOverlay.classList.remove("open");
+      pendingRestockId = null;
+      pendingRestockQty = 0;
+    }
+  });
+}
+
+if (slRestockOk) {
+  slRestockOk.addEventListener("click", () => {
+    if (pendingRestockId) {
+      fetch(`/ingredient/restock-by-name`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: pendingRestockId,
+          quantity: pendingRestockQty,
+        }),
+      });
+    }
+    slRestockOverlay.classList.remove("open");
+    pendingRestockId = null;
+    pendingRestockQty = 0;
+  });
+}
+
+if (slRestockCancel) {
+  slRestockCancel.addEventListener("click", () => {
+    slRestockOverlay.classList.remove("open");
+    pendingRestockId = null;
+    pendingRestockQty = 0;
+  });
+}
