@@ -591,10 +591,28 @@ document.querySelectorAll(".sl-check").forEach((btn) => {
 
     pendingToggleBtn = btn;
     if (slPriceField) slPriceField.value = "";
-    const itemName = item.querySelector(".sl-item-name").textContent;
+
+    const itemName = item.querySelector(".sl-item-name").textContent.trim();
+    const qtyEl = item.querySelector(".sl-qty-val");
+    const qtyText = qtyEl ? qtyEl.textContent.trim() : "";
+
+    let promptText;
+    if (qtyText) {
+      const parts = qtyText.split(" ");
+      const num = parts[0];
+      const unit = parts[1] || "";
+      if (unit && unit !== "pcs") {
+        promptText = `How much did you pay for ${num}${unit} ${itemName}?`;
+      } else {
+        promptText = `How much did you pay for ${num}x ${itemName}?`;
+      }
+    } else {
+      promptText = `How much did you pay for ${itemName}?`;
+    }
+
     const msgEl = document.getElementById("sl-price-msg");
-    if (msgEl)
-      msgEl.textContent = `How much did you pay for ${itemName}? (optional)`;
+    if (msgEl) msgEl.textContent = `${promptText} (optional)`;
+
     if (slPriceOverlay) slPriceOverlay.classList.add("open");
     setTimeout(() => slPriceField && slPriceField.focus(), 100);
   });
