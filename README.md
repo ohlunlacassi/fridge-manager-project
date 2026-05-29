@@ -20,7 +20,12 @@ Fridge Manager entstand aus dieser persönlichen Erfahrung heraus. Die App erfas
 - Ablaufdaten verfolgen mit Farbmarkierung (frisch / läuft bald ab / abgelaufen)
 - Wochentliches Einkaufsbudget festlegen und Ausgaben verfolgen
 - Einkaufsliste mit automatischen Vorschlägen bei niedrigem Bestand
+- Autocomplete beim Eingeben von Artikelnamen (basierend auf früheren Einträgen)
+- Artikel nach dem Abhaken wieder ins Inventar aufnehmen (Restock-Funktion)
+- Artikelnamen und Einheit in der Einkaufsliste bearbeiten
+- Menge und Einheit werden im Preisdialog beim Abhaken angezeigt
 - Ausgabenverlauf nach Kalenderwochen gruppiert
+
 
 ---
 
