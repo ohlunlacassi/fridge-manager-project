@@ -459,10 +459,18 @@ if (slEditPriceSave) {
             priceEl.childNodes[0].textContent = `€${parseFloat(data.price).toFixed(2)} `;
           }
         }
+
         const spentEl = document.querySelector(".sl-budget-spent");
         if (spentEl && data.total_spent !== undefined) {
           spentEl.textContent = `spent €${data.total_spent.toFixed(2)}`;
         }
+
+        // Update dataset.spent so updateBudgetBar reads the new value
+        const budgetCard = document.querySelector(".sl-budget-card");
+        if (budgetCard && data.total_spent !== undefined) {
+          budgetCard.dataset.spent = data.total_spent;
+        }
+
         updateBudgetBar();
         slEditPriceOverlay.classList.remove("open");
         editPriceItemId = null;
@@ -845,7 +853,6 @@ if (slAddName && slAutocomplete) {
           body: JSON.stringify({ name: match }),
         }).then(() => {
           item.remove();
-          // Remove from suggestions array
           const idx = suggestions.indexOf(match);
           if (idx > -1) suggestions.splice(idx, 1);
           if (slAutocomplete.children.length === 0) {
