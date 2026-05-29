@@ -567,6 +567,30 @@ def set_budget():
     flash("Weekly budget updated.", "success")
     return redirect(url_for("main.shopping_list"))
 
+@main.route("/shopping-list/edit/<int:id>", methods=["POST"])
+@login_required
+def shopping_list_edit(id: int):
+    item = db.session.get(ShoppingItem, id)
+    if item is None:
+        abort(404)
+    if item.user_id != current_user.id:
+        abort(403)
+
+    data = request.get_json(silent=True) or {}
+    name = data.get("name", "").strip()
+    unit = data.get("unit", "").strip()
+
+    if not name:
+        return {"error": "Name is required."}, 400
+
+    qty_parts = item.quantity.split(" ", 1) if item.quantity else ["1"]
+    qty_num = qty_parts[0]
+    item.name = name
+    item.quantity = f"{qty_num} {unit}".strip() if unit else qty_num
+
+    db.session.commit()
+    return {"name": item.name, "quantity": item.quantity}, 200
+
 
 @main.route("/shopping-list/edit-price/<int:id>", methods=["POST"])
 @login_required
