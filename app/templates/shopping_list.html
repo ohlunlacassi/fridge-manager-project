@@ -284,6 +284,32 @@ total > 0 else 0 %} {# ── Hero ── #}
               </button>
             </div>
             {% endif %}
+            <button
+              class="sl-edit-item-btn"
+              data-id="{{ item.id }}"
+              data-name="{{ item.name }}"
+              data-unit="{{ item.quantity.split(' ')[1] if item.quantity and ' ' in item.quantity else '' }}"
+              aria-label="Edit item"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                />
+                <path
+                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                />
+              </svg>
+            </button>
             <form
               method="POST"
               action="{{ url_for('main.shopping_list_delete', id=item.id) }}"
@@ -532,6 +558,42 @@ total > 0 else 0 %} {# ── Hero ── #}
       <button class="sl-confirm-cancel" id="sl-restock-cancel">No</button>
       <button class="sl-confirm-ok sl-confirm-ok--green" id="sl-restock-ok">
         Yes, add
+      </button>
+    </div>
+  </div>
+</div>
+{# ── Edit item modal ── #}
+<div class="sl-confirm-overlay" id="sl-edit-item-overlay">
+  <div class="sl-confirm-modal">
+    <p class="sl-confirm-msg">Edit item</p>
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      "
+    >
+      <input
+        type="text"
+        id="sl-edit-item-name"
+        placeholder="Item name"
+        class="sl-edit-item-input"
+      />
+      <select id="sl-edit-item-unit" class="sl-edit-item-select">
+        <option value="">— no unit —</option>
+        <option value="g">g</option>
+        <option value="kg">kg</option>
+        <option value="ml">ml</option>
+        <option value="l">l</option>
+        <option value="pcs">pcs</option>
+        <option value="pack">pack</option>
+      </select>
+    </div>
+    <div class="sl-confirm-actions">
+      <button class="sl-confirm-cancel" id="sl-edit-item-cancel">Cancel</button>
+      <button class="sl-confirm-ok sl-confirm-ok--green" id="sl-edit-item-save">
+        Save
       </button>
     </div>
   </div>

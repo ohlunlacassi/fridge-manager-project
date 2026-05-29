@@ -351,6 +351,69 @@ function updateBudgetBar() {
 
 updateBudgetBar();
 
+// ── Shopping list: edit item modal ──
+let editItemId = null;
+const slEditItemOverlay = document.getElementById("sl-edit-item-overlay");
+const slEditItemName = document.getElementById("sl-edit-item-name");
+const slEditItemUnit = document.getElementById("sl-edit-item-unit");
+const slEditItemSave = document.getElementById("sl-edit-item-save");
+const slEditItemCancel = document.getElementById("sl-edit-item-cancel");
+
+document.querySelectorAll(".sl-edit-item-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    editItemId = btn.dataset.id;
+    if (slEditItemName) slEditItemName.value = btn.dataset.name;
+    if (slEditItemUnit) slEditItemUnit.value = btn.dataset.unit || "";
+    if (slEditItemOverlay) slEditItemOverlay.classList.add("open");
+    setTimeout(() => slEditItemName && slEditItemName.focus(), 100);
+  });
+});
+
+if (slEditItemSave) {
+  slEditItemSave.addEventListener("click", () => {
+    const name = slEditItemName ? slEditItemName.value.trim() : "";
+    const unit = slEditItemUnit ? slEditItemUnit.value : "";
+
+    if (!name) return;
+
+    fetch(`/shopping-list/edit/${editItemId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, unit }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const item = document.querySelector(
+          `.sl-item[data-id="${editItemId}"]`,
+        );
+        if (item) {
+          const nameEl = item.querySelector(".sl-item-name");
+          if (nameEl) nameEl.textContent = data.name;
+          const qtyEl = item.querySelector(`#sl-qty-${editItemId}`);
+          if (qtyEl) qtyEl.textContent = data.quantity;
+        }
+        slEditItemOverlay.classList.remove("open");
+        editItemId = null;
+      });
+  });
+}
+
+if (slEditItemCancel) {
+  slEditItemCancel.addEventListener("click", () => {
+    slEditItemOverlay.classList.remove("open");
+    editItemId = null;
+  });
+}
+
+if (slEditItemOverlay) {
+  slEditItemOverlay.addEventListener("click", (e) => {
+    if (e.target === slEditItemOverlay) {
+      slEditItemOverlay.classList.remove("open");
+      editItemId = null;
+    }
+  });
+}
+
 // ── Shopping list: edit price (pencil icon) ──
 let editPriceItemId = null;
 const slEditPriceOverlay = document.getElementById("sl-edit-price-overlay");
@@ -396,10 +459,18 @@ if (slEditPriceSave) {
             priceEl.childNodes[0].textContent = `€${parseFloat(data.price).toFixed(2)} `;
           }
         }
+
         const spentEl = document.querySelector(".sl-budget-spent");
         if (spentEl && data.total_spent !== undefined) {
           spentEl.textContent = `spent €${data.total_spent.toFixed(2)}`;
         }
+
+        // Update dataset.spent so updateBudgetBar reads the new value
+        const budgetCard = document.querySelector(".sl-budget-card");
+        if (budgetCard && data.total_spent !== undefined) {
+          budgetCard.dataset.spent = data.total_spent;
+        }
+
         updateBudgetBar();
         slEditPriceOverlay.classList.remove("open");
         editPriceItemId = null;
@@ -782,7 +853,6 @@ if (slAddName && slAutocomplete) {
           body: JSON.stringify({ name: match }),
         }).then(() => {
           item.remove();
-          // Remove from suggestions array
           const idx = suggestions.indexOf(match);
           if (idx > -1) suggestions.splice(idx, 1);
           if (slAutocomplete.children.length === 0) {

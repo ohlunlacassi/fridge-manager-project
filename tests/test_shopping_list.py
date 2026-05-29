@@ -171,8 +171,8 @@ def test_suggestion_disappears_after_adding(client, app):
     login(client)
     response = client.get("/shopping-list")
 
-    # Butter appears in the list but not in suggestions twice
-    assert response.data.count(b"Butter") == 1
+    # Butter should not appear in the "Running low" suggestions section
+    assert b"SUGGESTED FROM YOUR FRIDGE" not in response.data
 
 
 # ── Toggle Check Off (US12) ──
@@ -874,3 +874,38 @@ def test_budget_user_isolated(client, app):
     assert b"5.00" in response.data
     assert b"100.00" not in response.data
     assert b"50.00" not in response.data
+
+
+def test_edit_item_empty_name_returns_400(client, app):
+    """Editing with empty name returns 400."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Milk")
+        item_id = item.id
+
+    login(client)
+    response = client.post(
+        f"/shopping-list/edit/{item_id}",
+        json={"name": "", "unit": ""},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+
+
+def test_edit_item_forbidden(client, app):
+    """Cannot edit another user's shopping item."""
+    with app.app_context():
+        owner = make_user(email="owner@example.com")
+        attacker = make_user(full_name="Attacker", email="attacker@example.com")
+        item = make_shopping_item(owner.id, name="Milk")
+        item_id = item.id
+
+    login(client, email="attacker@example.com")
+    response = client.post(
+        f"/shopping-list/edit/{item_id}",
+        json={"name": "Hacked", "unit": ""},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 403
