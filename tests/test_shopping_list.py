@@ -909,3 +909,83 @@ def test_edit_item_forbidden(client, app):
     )
 
     assert response.status_code == 403
+
+# ––– US 24: Auto clear checked items –––
+
+def test_checked_items_from_previous_week_are_auto_cleared(client, app):
+    """Checked items from a previous week are removed on GET."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Milk", is_checked=True)
+        item.checked_week = 1
+        item.checked_year = 2026
+        db.session.commit()
+        item_id = item.id
+
+    login(client)
+    client.get("/shopping-list")
+
+    with app.app_context():
+        assert db.session.get(ShoppingItem, item_id) is None
+
+
+def test_checked_items_from_current_week_are_not_cleared(client, app):
+    """Checked items from the current week remain on the list."""
+    import datetime
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Eggs", is_checked=True)
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        item.checked_week = iso.week
+        item.checked_year = iso.year
+        db.session.commit()
+        item_id = item.id
+
+    login(client)
+    client.get("/shopping-list")
+
+    with app.app_context():
+        assert db.session.get(ShoppingItem, item_id) is not None
+
+
+def test_unchecked_items_are_never_auto_cleared(client, app):
+    """Unchecked items are never removed automatically."""
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Bread", is_checked=False)
+        item_id = item.id
+
+    login(client)
+    client.get("/shopping-list")
+
+    with app.app_context():
+        assert db.session.get(ShoppingItem, item_id) is not None
+
+
+def test_auto_clear_does_not_delete_expenses(client, app):
+    """Auto-clearing old checked items does not affect expense history."""
+    import datetime
+    with app.app_context():
+        user = make_user()
+        item = make_shopping_item(user.id, name="Butter", is_checked=True)
+        item.checked_week = 1
+        item.checked_year = 2026
+        db.session.commit()
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        expense = Expense(
+            user_id=user.id,
+            amount=2.50,
+            date=today,
+            week_number=1,
+            year=2026,
+        )
+        db.session.add(expense)
+        db.session.commit()
+
+    login(client)
+    client.get("/shopping-list")
+
+    with app.app_context():
+        assert Expense.query.count() == 1
