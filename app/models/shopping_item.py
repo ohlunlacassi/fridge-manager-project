@@ -18,6 +18,8 @@ class ShoppingItem(db.Model):
 
     user = db.relationship("User", back_populates="shopping_items")
     ingredient = db.relationship("Ingredient", back_populates="shopping_items")
+    checked_week = db.Column(db.Integer, nullable=True)
+    checked_year = db.Column(db.Integer, nullable=True)
 
     def __repr__(self) -> str:
         return f"<ShoppingItem {self.name!r} checked={self.is_checked}>"
