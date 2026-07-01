@@ -402,6 +402,25 @@ def shopping_list():
         return redirect(url_for("main.shopping_list"))
 
     # GET
+    # Auto-remove checked items from previous weeks
+    today = datetime.date.today()
+    iso = today.isocalendar()
+    old_items = ShoppingItem.query.filter(
+        ShoppingItem.user_id == current_user.id,
+        ShoppingItem.is_checked == True,
+        db.or_(
+            ShoppingItem.checked_year < iso.year,
+            db.and_(
+                ShoppingItem.checked_year == iso.year,
+                ShoppingItem.checked_week < iso.week,
+            ),
+        ),
+    ).all()
+    for old in old_items:
+        db.session.delete(old)
+    if old_items:
+        db.session.commit()
+
     items = ShoppingItem.query.filter_by(
         user_id=current_user.id).order_by(ShoppingItem.id.asc()).all()
 
@@ -448,6 +467,10 @@ def shopping_list_toggle(id: int):
     item.is_checked = not item.is_checked
 
     if item.is_checked:
+        today = datetime.date.today()
+        iso = today.isocalendar()
+        item.checked_week = iso.week
+        item.checked_year = iso.year
         if item.ingredient_id:
             ingredient = db.session.get(Ingredient, item.ingredient_id)
             if ingredient:
@@ -473,6 +496,9 @@ def shopping_list_toggle(id: int):
                 pass
     else:
         item.price = None
+        item.checked_week = None
+        item.checked_year = None
+
 
     db.session.commit()
     return {"is_checked": item.is_checked, "total_spent": get_total_spent()}, 200
