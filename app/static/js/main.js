@@ -814,7 +814,7 @@ if (slRestockOk) {
         name: pendingRestockId,
         qty: pendingRestockQty,
       });
-      window.location.href = `/ingredients?${params.toString()}`;
+      window.location.href = `/?${params.toString()}`;
       return;
     }
     slRestockOverlay.classList.remove("open");
