@@ -41,6 +41,18 @@ selectattr('expiry_status', 'in', ['warning', 'expired']) | list | length %} {#
       Vegetable
     </button>
     <button
+      class="filter-tab {% if active_category == 'Fruits' %}active{% endif %}"
+      data-category="Fruits"
+    >
+      Fruits
+    </button>
+    <button
+      class="filter-tab {% if active_category == 'Grains' %}active{% endif %}"
+      data-category="Grains"
+    >
+      Grains
+    </button>
+    <button
       class="filter-tab {% if active_category == 'Dairy' %}active{% endif %}"
       data-category="Dairy"
     >
@@ -57,6 +69,18 @@ selectattr('expiry_status', 'in', ['warning', 'expired']) | list | length %} {#
       data-category="Condiments"
     >
       Condiments
+    </button>
+    <button
+      class="filter-tab {% if active_category == 'Frozen' %}active{% endif %}"
+      data-category="Frozen"
+    >
+      Frozen
+    </button>
+    <button
+      class="filter-tab {% if active_category == 'Snacks' %}active{% endif %}"
+      data-category="Snacks"
+    >
+      Snacks
     </button>
     <button
       class="filter-tab {% if active_category == 'Other' %}active{% endif %}"
