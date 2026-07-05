@@ -24,13 +24,13 @@ class Ingredient(db.Model):
 
     @property
     def expiry_status(self) -> str:
-        """Return 'fresh' | 'warning' | 'expired' for CSS class logic."""
+        """Return 'fresh' | 'warning' | 'expired' | 'none' for CSS class logic."""
         if self.expiry_date is None:
             return "none"
         delta = (self.expiry_date - datetime.date.today()).days
-        if delta <= 0:
+        if delta < 0:
             return "expired"
-        if delta <= 7:
+        if delta <= 3:
             return "warning"
         return "fresh"
 

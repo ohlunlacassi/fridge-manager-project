@@ -160,6 +160,25 @@ if (editQtyPlus && editQtyInput) {
   });
 }
 
+// ── Open Add modal pre-filled when redirected from shopping list restock ──
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("add") !== "1" || !modalOverlay) return;
+
+  openModal();
+
+  const nameInput = document.querySelector(
+    "#modal-overlay input[name='name']",
+  );
+  if (nameInput) nameInput.value = params.get("name") || "";
+
+  const qty = parseFloat(params.get("qty"));
+  if (qtyInput && !isNaN(qty) && qty > 0) qtyInput.value = qty;
+
+  // Remove params so the modal doesn't reopen on refresh
+  history.replaceState(null, "", window.location.pathname);
+})();
+
 // ── Click on card to open edit modal ──
 document.querySelectorAll(".ingredient-card").forEach((card) => {
   card.addEventListener("click", (e) => {
@@ -537,16 +556,17 @@ function doToggle(btn, price = "") {
         item.classList.add("sl-item--done");
         item.dataset.filter = "done";
 
-        // Show restock prompt for ALL checked items
+       // Show restock prompt for ALL checked items
         const qtyEl = item.querySelector(".sl-qty-val");
         const qtyText = qtyEl ? qtyEl.textContent.trim() : "1";
-        pendingRestockId = item
+        const itemNameText = item
           .querySelector(".sl-item-name")
           .textContent.trim();
+        pendingRestockId = itemNameText;
         pendingRestockQty = parseFloat(qtyText.split(" ")[0]) || 1;
         const restockMsgEl = document.getElementById("sl-restock-msg");
         if (restockMsgEl)
-          restockMsgEl.textContent = `Add ${qtyText} to your inventory?`;
+          restockMsgEl.textContent = `Add ${qtyText} ${itemNameText} to your inventory?`;
         if (slRestockOverlay) slRestockOverlay.classList.add("open");
 
         if (price && parseFloat(price) > 0) {
@@ -788,14 +808,14 @@ if (slRestockOverlay) {
 if (slRestockOk) {
   slRestockOk.addEventListener("click", () => {
     if (pendingRestockId) {
-      fetch(`/ingredient/restock-by-name`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: pendingRestockId,
-          quantity: pendingRestockQty,
-        }),
+      // Redirect to ingredients page with the Add modal pre-filled
+      const params = new URLSearchParams({
+        add: "1",
+        name: pendingRestockId,
+        qty: pendingRestockQty,
       });
+      window.location.href = `/?${params.toString()}`;
+      return;
     }
     slRestockOverlay.classList.remove("open");
     pendingRestockId = null;
