@@ -1,7 +1,7 @@
 # Fridge Manager
 
 Webbasierte Anwendung zur Verwaltung von Kühlschrank- und Vorratsinhalt.  
-Entwickelt im Rahmen des Moduls *Agile Webanwendungen mit Python* an der Hochschule Augsburg.
+Entwickelt im Rahmen des Moduls *Agile Webanwendungen mit Python* an der Technische Hochschule Augsburg.
 
 ---
 
@@ -16,14 +16,19 @@ Fridge Manager entstand aus dieser persönlichen Erfahrung heraus. Die App erfas
 ## Funktionen
 
 - Benutzerregistrierung und Login
-- Zutaten verwalten (hinzufügen, bearbeiten, löschen)
+- Zutaten verwalten (hinzufügen, bearbeiten, löschen) über Modals
 - Ablaufdaten verfolgen mit Farbmarkierung (frisch / läuft bald ab / abgelaufen)
-- Wöchentliches Einkaufsbudget festlegen und Ausgaben verfolgen
-- Einkaufsliste mit automatischen Vorschlägen bei niedrigem Bestand
+- "Use First"-Filter: zeigt nur bald ablaufende und abgelaufene Zutaten
+- Suche, Sortierung und Kategoriefilter direkt in der Zutatenübersicht
+- Automatische Kennzeichnung bei niedrigem Bestand (rote Mengenanzeige, Schwellenwerte je Einheit)
+- Einkaufsliste mit Vorschlägen bei niedrigem Bestand und manuell hinzugefügten Artikeln
 - Autocomplete beim Eingeben von Artikelnamen (basierend auf früheren Einträgen)
-- Artikel nach dem Abhaken wieder ins Inventar aufnehmen (Restock-Funktion)
+- Preiserfassung beim Abhaken; Ausgaben werden automatisch der aktuellen Kalenderwoche zugeordnet
+- Preise nachträglich bearbeitbar
+- Wöchentliches Einkaufsbudget festlegen, Fortschrittsbalken mit Echtzeit-Aktualisierung
+- Warnung bei Budgetüberschreitung
+- Artikel nach dem Abhaken wieder ins Inventar aufnehmen (Restock-Funktion mit vorausgefülltem Formular)
 - Artikelnamen und Einheit in der Einkaufsliste bearbeiten
-- Menge und Einheit werden im Preisdialog beim Abhaken angezeigt
 - Ausgabenverlauf nach Kalenderwochen gruppiert
 
 
@@ -31,7 +36,7 @@ Fridge Manager entstand aus dieser persönlichen Erfahrung heraus. Die App erfas
 
 ## Tech Stack
 
-| Komponente     | Technologie                    | Version  |
+| Komponente     | Technologie                   | Version  |
 |----------------|-------------------------------|----------|
 | Backend        | Python + Flask                | 3.1.3    |
 | Datenbank      | SQLite + Flask-SQLAlchemy     | 3.1.1    |
