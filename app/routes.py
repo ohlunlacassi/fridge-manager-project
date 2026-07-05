@@ -12,7 +12,7 @@ main = Blueprint("main", __name__)
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
-CATEGORIES = ["Vegetables", "Dairy", "Meat", "Condiments", "Drinks", "Other", "Grains", "Fruits", "Snacks", "Frozen"]
+CATEGORIES = ["Vegetables", "Dairy", "Meat", "Condiments", "Drinks", "Grains", "Fruits", "Snacks", "Frozen", "Other"]
 UNITS = ["g", "kg", "ml", "l", "pcs", "pack"]
 
 
