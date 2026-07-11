@@ -41,7 +41,7 @@ def index():
     base_query = Ingredient.query.filter_by(user_id=current_user.id)
 
     if filter_mode == "use-first":
-        cutoff = datetime.date.today() + datetime.timedelta(days=7)
+        cutoff = datetime.date.today() + datetime.timedelta(days=5)
         ingredients = (
             base_query
             .filter(Ingredient.expiry_date.isnot(None), Ingredient.expiry_date <= cutoff)
@@ -89,6 +89,11 @@ def ingredient_add():
                 raise ValueError
         except ValueError:
             flash("Quantity must be a positive number.", "error")
+            return render_template("ingredients/ingredient_add.html",
+                                   categories=CATEGORIES, units=UNITS, **get_dates())
+
+        if unit not in UNITS:
+            flash("Please select a valid unit.", "error")
             return render_template("ingredients/ingredient_add.html",
                                    categories=CATEGORIES, units=UNITS, **get_dates())
 
@@ -186,6 +191,7 @@ def ingredient_edit(id: int):
         ingredient.unit = unit
         ingredient.category = category
         ingredient.expiry_date = expiry_date
+        # Low stock is toggled manually by the user in the edit modal
         ingredient.is_low_stock = request.form.get("is_low_stock") == "on"
         db.session.commit()
 
@@ -257,16 +263,8 @@ def ingredient_restock_by_name():
         db.session.commit()
         return {"status": "updated", "quantity": ingredient.quantity}, 200
 
-    new_ingredient = Ingredient(
-        user_id=current_user.id,
-        name=name,
-        quantity=quantity,
-        unit="pcs",
-        category="Other",
-    )
-    db.session.add(new_ingredient)
-    db.session.commit()
-    return {"status": "created", "quantity": quantity}, 200
+    # Unknown ingredient: the frontend opens the prefilled Add modal instead
+    return {"status": "not_found"}, 200
 
 
 @main.route("/ingredient/reduce-by-name", methods=["POST"])
@@ -291,7 +289,7 @@ def ingredient_reduce_by_name():
         db.session.commit()
         return {"quantity": ingredient.quantity}, 200
 
-    return {"status": "not found"}, 200
+    return {"status": "not_found"}, 200
 
 
 @main.route("/register", methods=["GET", "POST"])
@@ -402,9 +400,10 @@ def shopping_list():
         return redirect(url_for("main.shopping_list"))
 
     # GET
-    # Auto-remove checked items from previous weeks
     today = datetime.date.today()
     iso = today.isocalendar()
+
+    # Auto-remove checked items from previous weeks
     old_items = ShoppingItem.query.filter(
         ShoppingItem.user_id == current_user.id,
         ShoppingItem.is_checked == True,
@@ -432,7 +431,6 @@ def shopping_list():
             ~Ingredient.id.in_(on_list_ids))
     suggestions = suggestions_query.all()
 
-    today = datetime.date.today()
     today_str = today.strftime("%A %-d %B").upper()
 
     # Autocomplete names from history
@@ -473,7 +471,7 @@ def shopping_list_toggle(id: int):
         item.checked_year = iso.year
         if item.ingredient_id:
             ingredient = db.session.get(Ingredient, item.ingredient_id)
-            if ingredient:
+            if ingredient and ingredient.user_id == current_user.id:
                 ingredient.is_low_stock = False
 
         data = request.get_json(silent=True) or {}
@@ -487,18 +485,30 @@ def shopping_list_toggle(id: int):
                         user_id=current_user.id,
                         amount=amount,
                         description=item.name,
-                        date=datetime.date.today(),
-                        week_number=datetime.date.today().isocalendar().week,
-                        year=datetime.date.today().isocalendar().year,
+                        date=today,
+                        week_number=iso.week,
+                        year=iso.year,
                     )
                     db.session.add(expense)
             except ValueError:
                 pass
     else:
+        # Remove the expense that was recorded when the item was checked off,
+        # so the weekly total stays correct after unchecking.
+        if item.price:
+            iso = datetime.date.today().isocalendar()
+            expense = Expense.query.filter_by(
+                user_id=current_user.id,
+                amount=item.price,
+                description=item.name,
+                week_number=iso.week,
+                year=iso.year,
+            ).first()
+            if expense:
+                db.session.delete(expense)
         item.price = None
         item.checked_week = None
         item.checked_year = None
-
 
     db.session.commit()
     return {"is_checked": item.is_checked, "total_spent": get_total_spent()}, 200
@@ -519,6 +529,7 @@ def shopping_list_delete(id: int):
         expense = Expense.query.filter_by(
             user_id=current_user.id,
             amount=item.price,
+            description=item.name,
             week_number=iso.week,
             year=iso.year,
         ).first()
@@ -567,7 +578,7 @@ def shopping_list_clear():
     for item in checked_items:
         if item.ingredient_id:
             ingredient = db.session.get(Ingredient, item.ingredient_id)
-            if ingredient:
+            if ingredient and ingredient.user_id == current_user.id:
                 ingredient.is_low_stock = False
         db.session.delete(item)
 
@@ -592,6 +603,7 @@ def set_budget():
     db.session.commit()
     flash("Weekly budget updated.", "success")
     return redirect(url_for("main.shopping_list"))
+
 
 @main.route("/shopping-list/edit/<int:id>", methods=["POST"])
 @login_required
@@ -643,6 +655,7 @@ def shopping_list_edit_price(id: int):
         old_expense = Expense.query.filter_by(
             user_id=current_user.id,
             amount=item.price,
+            description=item.name,
             week_number=iso.week,
             year=iso.year,
         ).first()
