@@ -39,6 +39,7 @@ def index():
     filter_mode = request.args.get("filter", "")
     active_category = request.args.get("category", "all")
     base_query = Ingredient.query.filter_by(user_id=current_user.id)
+    total_items = base_query.count()
 
     if filter_mode == "use-first":
         cutoff = datetime.date.today() + datetime.timedelta(days=5)
@@ -65,6 +66,7 @@ def index():
         units=UNITS,
         active_category=active_category,
         filter_mode=filter_mode,
+        total_items=total_items,
         **get_dates(),
     )
 
