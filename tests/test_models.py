@@ -75,7 +75,7 @@ def test_expiry_status_fresh(app):
 
 
 def test_expiry_status_warning(app):
-    """Ingredient expiring within 7 days returns 'warning'."""
+    """Ingredient expiring within 3 days returns 'warning'."""
     user = make_user()
     ingredient = Ingredient(
         user_id=user.id,
@@ -83,10 +83,9 @@ def test_expiry_status_warning(app):
         quantity=1.0,
         unit="pcs",
         category="Dairy",
-        expiry_date=datetime.date.today() + datetime.timedelta(days=5),
+        expiry_date=datetime.date.today() + datetime.timedelta(days=2),
     )
     assert ingredient.expiry_status == "warning"
-
 
 def test_expiry_status_expired(app):
     """Ingredient past its expiry date returns 'expired'."""
@@ -103,7 +102,7 @@ def test_expiry_status_expired(app):
 
 
 def test_expiry_status_expires_today(app):
-    """Ingredient expiring today returns 'expired'."""
+    """Ingredient expiring today returns 'warning', not yet 'expired'."""
     user = make_user()
     ingredient = Ingredient(
         user_id=user.id,
@@ -113,8 +112,28 @@ def test_expiry_status_expires_today(app):
         category="Dairy",
         expiry_date=datetime.date.today(),
     )
-    assert ingredient.expiry_status == "expired"
+    assert ingredient.expiry_status == "warning"
 
+def test_expiry_status_boundary_three_days(app):
+    """Exactly 3 days left is still 'warning'; 4 days is 'fresh'."""
+    user = make_user()
+    ing = Ingredient(
+        user_id=user.id, name="Cheese", quantity=1.0, unit="pcs",
+        category="Dairy",
+        expiry_date=datetime.date.today() + datetime.timedelta(days=3),
+    )
+    assert ing.expiry_status == "warning"
+
+
+def test_expiry_status_expired_yesterday(app):
+    """Past date returns 'expired'."""
+    user = make_user()
+    ing = Ingredient(
+        user_id=user.id, name="Ham", quantity=1.0, unit="pcs",
+        category="Meat",
+        expiry_date=datetime.date.today() - datetime.timedelta(days=1),
+    )
+    assert ing.expiry_status == "expired"
 
 def test_expiry_status_no_date(app):
     """Ingredient with no expiry date returns 'none'."""
