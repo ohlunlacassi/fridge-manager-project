@@ -645,12 +645,13 @@ def test_delete_item_removes_associated_expense(client, app):
         today = datetime.date.today()
         iso = today.isocalendar()
         expense = Expense(
-            user_id=user.id,
-            amount=2.50,
-            date=today,
-            week_number=iso.week,
-            year=iso.year,
-        )
+                user_id=user.id,
+                amount=2.50,
+                description="Milk",
+                date=today,
+                week_number=iso.week,
+                year=iso.year,
+            )
         db.session.add(expense)
         db.session.commit()
         item_id = item.id
@@ -697,12 +698,13 @@ def test_edit_price_updates_item_and_expense(client, app):
         today = datetime.date.today()
         iso = today.isocalendar()
         expense = Expense(
-            user_id=user.id,
-            amount=3.00,
-            date=today,
-            week_number=iso.week,
-            year=iso.year,
-        )
+                user_id=user.id,
+                amount=3.00,
+                description="Milk",
+                date=today,
+                week_number=iso.week,
+                year=iso.year,
+            )
         db.session.add(expense)
         db.session.commit()
         item_id = item.id

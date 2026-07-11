@@ -77,9 +77,9 @@ def test_restock_case_insensitive_match(client, app):
         updated = db.session.get(Ingredient, ing_id)
         assert updated.quantity == 3.0
 
-
-def test_restock_creates_new_ingredient_if_not_found(client, app):
-    """Restock creates a new ingredient entry if name not found."""
+def test_restock_not_found_does_not_create_ingredient(client, app):
+    """Restock with unknown name returns not_found and creates nothing,
+    the frontend opens the prefilled Add modal instead."""
     with app.app_context():
         make_user()
 
@@ -91,12 +91,10 @@ def test_restock_creates_new_ingredient_if_not_found(client, app):
     )
 
     assert response.status_code == 200
-    assert response.get_json()["status"] == "created"
+    assert response.get_json()["status"] == "not_found"
 
     with app.app_context():
-        ing = Ingredient.query.filter_by(name="Kiwi").first()
-        assert ing is not None
-        assert ing.quantity == 5.0
+        assert Ingredient.query.filter_by(name="Kiwi").count() == 0
 
 
 def test_restock_invalid_quantity_returns_400(client, app):
@@ -219,7 +217,7 @@ def test_reduce_not_found_returns_200(client, app):
     )
 
     assert response.status_code == 200
-    assert response.get_json()["status"] == "not found"
+    assert response.get_json()["status"] == "not_found"
 
 
 def test_reduce_invalid_quantity_returns_400(client, app):
