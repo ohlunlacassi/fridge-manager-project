@@ -42,7 +42,7 @@ def index():
     total_items = base_query.count()
 
     if filter_mode == "use-first":
-        cutoff = datetime.date.today() + datetime.timedelta(days=5)
+        cutoff = datetime.date.today() + datetime.timedelta(days=3)
         ingredients = (
             base_query
             .filter(Ingredient.expiry_date.isnot(None), Ingredient.expiry_date <= cutoff)
