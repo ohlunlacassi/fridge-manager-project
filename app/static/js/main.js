@@ -160,25 +160,6 @@ if (editQtyPlus && editQtyInput) {
   });
 }
 
-// ── Open Add modal pre-filled when redirected from shopping list restock ──
-(function () {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("add") !== "1" || !modalOverlay) return;
-
-  openModal();
-
-  const nameInput = document.querySelector(
-    "#modal-overlay input[name='name']",
-  );
-  if (nameInput) nameInput.value = params.get("name") || "";
-
-  const qty = parseFloat(params.get("qty"));
-  if (qtyInput && !isNaN(qty) && qty > 0) qtyInput.value = qty;
-
-  // Remove params so the modal doesn't reopen on refresh
-  history.replaceState(null, "", window.location.pathname);
-})();
-
 // ── Click on card to open edit modal ──
 document.querySelectorAll(".ingredient-card").forEach((card) => {
   card.addEventListener("click", (e) => {
@@ -206,6 +187,29 @@ if (qtyPlus && qtyInput) {
     qtyInput.value = Math.round((val + 1) * 100) / 100;
   });
 }
+
+// ── Open Add modal pre-filled when redirected from shopping list restock ──
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("add") !== "1" || !modalOverlay) return;
+
+  openModal();
+
+  const nameInput = document.querySelector(
+    "#modal-overlay input[name='name']",
+  );
+  if (nameInput) nameInput.value = params.get("name") || "";
+
+  const qty = parseFloat(params.get("qty"));
+  if (qtyInput && !isNaN(qty) && qty > 0) qtyInput.value = qty;
+
+  const unit = params.get("unit");
+  if (unit) setSelectValue("unit", unit);
+  
+  // Remove params so the modal doesn't reopen on refresh
+  history.replaceState(null, "", window.location.pathname);
+})();
+
 
 // ── Sort ingredients ──
 const sortBtn = document.getElementById("sort-btn");
@@ -567,7 +571,10 @@ function doToggle(btn, price = "") {
         const restockMsgEl = document.getElementById("sl-restock-msg");
         if (restockMsgEl)
           restockMsgEl.textContent = `Add ${qtyText} ${itemNameText} to your inventory?`;
-        if (slRestockOverlay) slRestockOverlay.classList.add("open");
+        if (slRestockOverlay) {
+          slRestockOverlay.dataset.itemId = item.dataset.id;
+          slRestockOverlay.classList.add("open");
+        }
 
         if (price && parseFloat(price) > 0) {
           const nameEl = item.querySelector(".sl-item-name");
@@ -588,6 +595,7 @@ function doToggle(btn, price = "") {
         item.dataset.filter = "tobuy";
         if (priceEl) priceEl.remove();
       }
+
 
       updateShoppingProgress();
       updateBudgetBar();
@@ -807,21 +815,29 @@ if (slRestockOverlay) {
 
 if (slRestockOk) {
   slRestockOk.addEventListener("click", () => {
-    if (pendingRestockId) {
-      // Redirect to ingredients page with the Add modal pre-filled
-      const params = new URLSearchParams({
-        add: "1",
-        name: pendingRestockId,
-        qty: pendingRestockQty,
-      });
-      window.location.href = `/?${params.toString()}`;
+    const itemId = slRestockOverlay ? slRestockOverlay.dataset.itemId : null;
+    const item = itemId
+      ? document.querySelector(`.sl-item[data-id="${itemId}"]`)
+      : null;
+
+    if (!item) {
+      slRestockOverlay.classList.remove("open");
       return;
     }
-    slRestockOverlay.classList.remove("open");
-    pendingRestockId = null;
-    pendingRestockQty = 0;
+
+    const name = item.querySelector(".sl-item-name").textContent.trim();
+    const qtyEl = item.querySelector(".sl-qty-val");
+    const qtyParts = qtyEl ? qtyEl.textContent.trim().split(" ") : [];
+    const qty = parseFloat(qtyParts[0]) || 1;
+    const unit = qtyParts[1] || "";
+
+
+    const params = new URLSearchParams({ add: "1", name: name, qty: qty });
+    if (unit) params.set("unit", unit);
+    window.location.href = `/?${params.toString()}`;
   });
 }
+
 
 if (slRestockCancel) {
   slRestockCancel.addEventListener("click", () => {
